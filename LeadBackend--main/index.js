@@ -85,7 +85,7 @@ import userRoutes from './src/routes/userRoutes.js';
 import leadRoutes from './src/routes/leadRoutes.js';
 import roleRoutes from './src/routes/roleRoutes.js';
 import followUpHistoryRoutes from './src/routes/followUpHistory.routes.js';
-import authRoutes from './src/routes/auth.routes.js'; 
+import authRoutes from './src/routes/auth.routes.js';
 
 // Load environment variables
 dotenv.config();
@@ -95,11 +95,11 @@ const PORT = process.env.PORT || 5000;
 
 // ✅ Define allowed origins here
 const allowedOrigins = [
-  "http://localhost:8080",   // frontend dev
-  "http://10.126.217.232:8080/",
+  "http://localhost:8080",          // local frontend dev
+  "http://10.126.217.232:8080",     // local network dev
+  "https://lead-listing.vercel.app" // deployed frontend
 ];
 
-// ✅ Now your CORS options work
 const corsOptions = {
   origin: (origin, callback) => {
     if (!origin || allowedOrigins.includes(origin)) {
@@ -111,11 +111,11 @@ const corsOptions = {
   credentials: true,
 };
 
-// Use the configured CORS options
 app.use(cors(corsOptions));
 
+
 // Middleware
-app.use(express.json()); 
+app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
 // API Routes
