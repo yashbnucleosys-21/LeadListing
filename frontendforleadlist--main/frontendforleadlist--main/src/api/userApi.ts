@@ -24,10 +24,8 @@ const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:5000/api'
 // 4️⃣ Shared Axios client
 const apiClient = axios.create({
   baseURL: API_BASE_URL,
-  headers: {
-    'Content-Type': 'application/json',
-  },
-  withCredentials: true, // If your backend uses cookies/auth
+  headers: { 'Content-Type': 'application/json' },
+  withCredentials: true, // If backend uses cookies/auth
 });
 
 /**
@@ -39,7 +37,7 @@ export const getUsers = async (): Promise<User[]> => {
     return response.data;
   } catch (error: any) {
     console.error('Error fetching users:', error.response?.data || error.message);
-    throw new Error('Failed to fetch users from the server.');
+    throw new Error(error.response?.data?.message || 'Failed to fetch users.');
   }
 };
 
@@ -52,7 +50,7 @@ export const addUser = async (userData: NewUserPayload): Promise<User> => {
     return response.data;
   } catch (error: any) {
     console.error('Error adding user:', error.response?.data || error.message);
-    throw new Error('Failed to add the user on the server.');
+    throw new Error(error.response?.data?.message || 'Failed to add user.');
   }
 };
 
@@ -65,7 +63,7 @@ export const updateUser = async (id: number, data: Partial<User>): Promise<User>
     return response.data;
   } catch (error: any) {
     console.error(`Error updating user ${id}:`, error.response?.data || error.message);
-    throw new Error('Failed to update user on the server.');
+    throw new Error(error.response?.data?.message || 'Failed to update user.');
   }
 };
 
@@ -77,6 +75,6 @@ export const deleteUser = async (id: number): Promise<void> => {
     await apiClient.delete(`/users/${id}`);
   } catch (error: any) {
     console.error(`Error deleting user ${id}:`, error.response?.data || error.message);
-    throw new Error('Failed to delete the user on the server.');
+    throw new Error(error.response?.data?.message || 'Failed to delete user.');
   }
 };

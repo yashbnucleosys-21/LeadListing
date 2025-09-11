@@ -1,15 +1,15 @@
 import axios from 'axios';
 
-// Use Vite environment variable, fallback to localhost
+// ✅ Use Vite environment variable for deployed backend, fallback to localhost for dev
 const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:5000/api';
 
-// Interface for the login payload
+// Interface for login payload
 export interface LoginPayload {
   email: string;
   password: string;
 }
 
-// Interface for the successful login response
+// Interface for successful login response
 export interface LoginResponse {
   message: string;
   token: string;
@@ -21,6 +21,13 @@ export interface LoginResponse {
   };
 }
 
+// Shared Axios client
+const apiClient = axios.create({
+  baseURL: API_URL,
+  headers: { 'Content-Type': 'application/json' },
+  withCredentials: true, // if you use cookies/auth tokens
+});
+
 /**
  * Sends a login request to the backend.
  * @param credentials - The user's email and password.
@@ -28,12 +35,12 @@ export interface LoginResponse {
  */
 export const login = async (credentials: LoginPayload): Promise<LoginResponse> => {
   try {
-    const response = await axios.post<LoginResponse>(`${API_URL}/auth/login`, credentials);
+    const response = await apiClient.post<LoginResponse>('/auth/login', credentials);
     return response.data;
-  } catch (error) {
-    if (axios.isAxiosError(error) && error.response) {
-      throw new Error(error.response.data.message || 'An unknown error occurred.');
-    }
-    throw new Error('Login failed. Please check your connection and try again.');
+  } catch (error: any) {
+    console.error('Login error:', error.response?.data || error.message);
+    throw new Error(
+      error.response?.data?.message || 'Login failed. Please check your credentials or server.'
+    );
   }
 };
