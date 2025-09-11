@@ -94,9 +94,10 @@ const app = express();
 const PORT = process.env.PORT || 5000;
 
 // ✅ Define allowed origins here
+
 const allowedOrigins = [
-  "http://localhost:8080",   // frontend dev
-  "https://lead-listing.vercel.app" // Vercel production
+  process.env.FRONTEND_URL, // Vercel frontend
+  "http://localhost:5173",   // frontend dev
 ];
 
 
