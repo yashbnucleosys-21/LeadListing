@@ -19,7 +19,7 @@ export interface User {
 export type NewUserPayload = Omit<User, 'id' | 'joinDate' | 'leadsAssigned' | 'leadsConverted'>;
 
 // 3️⃣ API base URL
-const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:5000/api';
+const API_BASE_URL = import.meta.env.VITE_API_URL;
 
 // 4️⃣ Shared Axios client
 const apiClient = axios.create({

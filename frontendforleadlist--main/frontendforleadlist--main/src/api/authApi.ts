@@ -1,7 +1,7 @@
 import axios from 'axios';
 
 // ✅ Use Vite environment variable for deployed backend, fallback to localhost for dev
-const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:5000/api';
+const API_URL = import.meta.env.VITE_API_URL;
 
 // Interface for login payload
 export interface LoginPayload {

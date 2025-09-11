@@ -2,7 +2,7 @@ import axios from 'axios';
 import { Lead } from '@/types/Lead'; // Shared types
 
 // Use Vite environment variable for deployed backend, fallback to localhost for development
-const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:5000/api';
+const API_BASE_URL = import.meta.env.VITE_API_URL;
 
 // Shared Axios client
 const apiClient = axios.create({
