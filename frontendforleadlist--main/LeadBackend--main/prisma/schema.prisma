@@ -1,0 +1,77 @@
+generator client {
+  provider = "prisma-client-js"
+}
+// prisma/schema.prisma
+
+datasource db {
+  // provider = "sqlserver" 
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id             Int      @id @default(autoincrement())
+  name           String
+  email          String   @unique
+ password       String
+  phone          String
+  role           String
+  department     String
+  updatedAt      DateTime @updatedAt
+  createdAt      DateTime @default(now())
+  status         String   @default("active")
+  joinDate       DateTime @default(now())
+  leadsAssigned  Int?     @default(0)
+  leadsConverted Int?     @default(0)
+}
+model FollowUpHistory {
+  id          Int      @id @default(autoincrement())
+  description String   // A summary of the action, e.g., "Status changed to Contacted"
+  notes       String?  // The specific notes added during this follow-up
+  status      String   // The status of the lead at the time of this follow-up
+  priority    String   // The priority of the lead at the time of this follow-up
+  createdAt   DateTime @default(now()) // The exact time this follow-up occurred
+
+  // Relation to the Lead model
+  leadId      Int
+  lead        Lead     @relation(fields: [leadId], references: [id], onDelete: Cascade)
+}
+model Lead {
+  id                 Int       @id @default(autoincrement())
+  leadName      String   @default("")  // <-- Add default value
+  companyName        String
+  email              String
+  contactPerson      String
+  phone              String
+  assignee           String
+  priority           String
+  status             String
+  leadSource    String   @default("")  // <-- Add default value
+  notes              String?
+  nextFollowUpDate   DateTime?
+   followUpTime      DateTime? 
+   service          String    @default("")
+    location           String? 
+  
+  callLogs           CallLog[]  // 1:N relation with CallLog
+   followUpHistory    FollowUpHistory[]
+}
+
+
+model CallLog {
+  id          Int      @id @default(autoincrement())
+  leadId      Int
+  name        String
+  email       String
+  phone       String
+  description String
+  createdAt   DateTime @default(now())
+
+  lead        Lead     @relation(fields: [leadId], references: [id])
+}
+
+
+model Role {
+  id             Int      @id @default(autoincrement())
+  name           String
+}
