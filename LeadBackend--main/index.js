@@ -95,10 +95,10 @@ const PORT = process.env.PORT || 5000;
 
 // ✅ Define allowed origins here
 const allowedOrigins = [
-  "http://localhost:8080",          // local frontend dev
-  "http://10.126.217.232:8080",     // local network dev
-  "https://lead-listing.vercel.app" // deployed frontend
+  "http://localhost:8080",   // frontend dev
+  "https://lead-listing.vercel.app" // Vercel production
 ];
+
 
 const corsOptions = {
   origin: (origin, callback) => {
@@ -112,6 +112,7 @@ const corsOptions = {
 };
 
 app.use(cors(corsOptions));
+
 
 
 // Middleware
