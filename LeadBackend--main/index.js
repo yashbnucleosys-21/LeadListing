@@ -133,5 +133,6 @@ app.get('/', (req, res) => {
 
 // Start server
 app.listen(PORT, () => {
-  console.log(`Server is running on http://localhost:${PORT}`);
+  // console.log(`Server is running on http://localhost:${PORT}`);
+  console.log(`Server is running on https://lead-listing.vercel.app`);
 });
