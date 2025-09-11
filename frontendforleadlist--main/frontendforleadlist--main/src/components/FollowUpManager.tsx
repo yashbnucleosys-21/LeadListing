@@ -10,7 +10,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Textarea } from '@/components/ui/textarea';
 import { Plus, Search, Calendar, Clock, CheckCircle, AlertTriangle, Bell, Phone, Mail, Video, Eye, Edit, History } from 'lucide-react';
 
-axios.defaults.baseURL = 'http://localhost:5000';
+axios.defaults.baseURL = 'https://leadlisting.onrender.com';
 
 // Interface for the API response when fetching leads
 interface ApiLeadResponse {
