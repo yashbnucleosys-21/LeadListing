@@ -1,16 +1,16 @@
 import axios from 'axios';
-import { Lead} from '@/types/Lead'; // Shared types
+import { Lead } from '@/types/Lead'; // Shared types
 
-// const API_BASE_URL = 'http://localhost:5000/api';
+// Use Vite environment variable for production, fallback to localhost
 const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:5000/api';
 
-// const API_BASE_URL = process.env.REACT_APP_API_URL || 'http://localhost:5000/api';
-// Create a shared Axios client instance
+// Shared Axios client instance
 const apiClient = axios.create({
   baseURL: API_BASE_URL,
   headers: {
     'Content-Type': 'application/json',
   },
+  withCredentials: true, // If your backend requires cookies/auth
 });
 
 // Add a new lead
@@ -32,7 +32,8 @@ export const getAllLeads = async (): Promise<Lead[]> => {
     return response.data;
   } catch (error: any) {
     console.error('Error fetching leads:', error);
-    throw new Error('Failed to fetch leads');
+    const message = error?.response?.data?.message || 'Failed to fetch leads.';
+    throw new Error(message);
   }
 };
 
@@ -43,7 +44,7 @@ export const updateLead = async (lead: Lead): Promise<Lead> => {
     return response.data;
   } catch (error: any) {
     console.error('Error updating lead:', error);
-    const message = error?.response?.data?.message || 'Failed to update lead';
+    const message = error?.response?.data?.message || 'Failed to update lead.';
     throw new Error(message);
   }
 };
