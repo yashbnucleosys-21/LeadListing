@@ -2,7 +2,7 @@ import axios from 'axios';
 
 // const API_URL = 'http://localhost:5000/api/auth'; // Adjust if your backend URL is different
 
-const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:5000/api'; // Use environment variable for production
+const API_URL = import.meta.env.VITE_API_URL || 'https://leadlisting.onrender.com/api'||'http://localhost:5000/api'; // Use environment variable for production
 // const API_URL = process.env.REACT_APP_API_URL || 'http://localhost:5000/api'; // Use environment variable for production
 // Interface for the login payload
 export interface LoginPayload {
