@@ -1,65 +1,32 @@
-import { useEffect, useState } from 'react';
+
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
-import { Users, UserPlus, Phone, Calendar, TrendingUp, CheckCircle } from 'lucide-react';
+import { Users, UserPlus, Phone, Calendar, TrendingUp, AlertCircle, CheckCircle } from 'lucide-react';
 
-interface Lead {
-  id: number;
-  name: string;
-  status: string;
-  priority: string;
-  assignee: string;
+interface DashboardProps {
+  stats: {
+    totalLeads: number;
+    newLeads: number;
+    todayFollowUps: number;
+    activeCalls: number;
+    conversionRate: number;
+  };
 }
 
-interface FollowUp {
-  id: number;
-  lead: string;
-  time: string;
-  type: string;
-  assignee: string;
-}
+const Dashboard = ({ stats }: DashboardProps) => {
+  const recentLeads = [
+    { id: 1, name: 'Acme Corp', status: 'new', priority: 'high', assignee: 'Rahul Sharma' },
+    { id: 2, name: 'Tech Solutions', status: 'contacted', priority: 'medium', assignee: 'Priya Patel' },
+    { id: 3, name: 'Digital Dynamics', status: 'qualified', priority: 'high', assignee: 'Amit Kumar' },
+    { id: 4, name: 'Innovation Labs', status: 'proposal', priority: 'low', assignee: 'Sneha Singh' },
+  ];
 
-interface Stats {
-  totalLeads: number;
-  newLeads: number;
-  todayFollowUps: number;
-  activeCalls: number;
-  conversionRate: number;
-}
-
-const Dashboard = () => {
-  const [stats, setStats] = useState<Stats | null>(null);
-  const [recentLeads, setRecentLeads] = useState<Lead[]>([]);
-  const [todayFollowUps, setTodayFollowUps] = useState<FollowUp[]>([]);
-  const [loading, setLoading] = useState(true);
-
-  // Fetch data from backend
-  useEffect(() => {
-    const fetchData = async () => {
-      try {
-        const [statsRes, leadsRes, followUpsRes] = await Promise.all([
-          fetch('/api/stats'),
-          fetch('/api/leads/recent'),
-          fetch('/api/followups/today'),
-        ]);
-
-        const statsData = await statsRes.json();
-        const leadsData = await leadsRes.json();
-        const followUpsData = await followUpsRes.json();
-
-        setStats(statsData);
-        setRecentLeads(leadsData);
-        setTodayFollowUps(followUpsData);
-      } catch (err) {
-        console.error('Failed to load dashboard data:', err);
-      } finally {
-        setLoading(false);
-      }
-    };
-
-    fetchData();
-  }, []);
+  const todayFollowUps = [
+    { id: 1, lead: 'Acme Corp', time: '10:00 AM', type: 'Call', assignee: 'Rahul Sharma' },
+    { id: 2, lead: 'Tech Solutions', time: '2:00 PM', type: 'Email', assignee: 'Priya Patel' },
+    { id: 3, lead: 'Digital Dynamics', time: '4:30 PM', type: 'Meeting', assignee: 'Amit Kumar' },
+  ];
 
   const getStatusColor = (status: string) => {
     switch (status) {
@@ -80,19 +47,10 @@ const Dashboard = () => {
     }
   };
 
-  if (loading) {
-    return <p className="text-center text-gray-500">Loading dashboard...</p>;
-  }
-
-  if (!stats) {
-    return <p className="text-center text-red-500">Failed to load dashboard data.</p>;
-  }
-
   return (
     <div className="space-y-6">
       {/* Stats Cards */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-6">
-        {/* Total Leads */}
         <Card className="bg-gradient-to-r from-blue-500 to-blue-600 text-white">
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
             <CardTitle className="text-sm font-medium">Total Leads</CardTitle>
@@ -104,7 +62,6 @@ const Dashboard = () => {
           </CardContent>
         </Card>
 
-        {/* New Leads */}
         <Card className="bg-gradient-to-r from-green-500 to-green-600 text-white">
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
             <CardTitle className="text-sm font-medium">New Leads</CardTitle>
@@ -116,7 +73,6 @@ const Dashboard = () => {
           </CardContent>
         </Card>
 
-        {/* Today's Follow-ups */}
         <Card className="bg-gradient-to-r from-orange-500 to-orange-600 text-white">
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
             <CardTitle className="text-sm font-medium">Today's Follow-ups</CardTitle>
@@ -128,7 +84,6 @@ const Dashboard = () => {
           </CardContent>
         </Card>
 
-        {/* Active Calls */}
         <Card className="bg-gradient-to-r from-purple-500 to-purple-600 text-white">
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
             <CardTitle className="text-sm font-medium">Active Calls</CardTitle>
@@ -140,7 +95,6 @@ const Dashboard = () => {
           </CardContent>
         </Card>
 
-        {/* Conversion Rate */}
         <Card className="bg-gradient-to-r from-indigo-500 to-indigo-600 text-white">
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
             <CardTitle className="text-sm font-medium">Conversion Rate</CardTitle>
@@ -164,26 +118,22 @@ const Dashboard = () => {
           </CardHeader>
           <CardContent>
             <div className="space-y-4">
-              {recentLeads.length > 0 ? (
-                recentLeads.map((lead) => (
-                  <div key={lead.id} className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
-                    <div className="space-y-1">
-                      <div className="font-medium">{lead.name}</div>
-                      <div className="text-sm text-gray-500">Assigned to: {lead.assignee}</div>
-                    </div>
-                    <div className="flex gap-2">
-                      <Badge className={`text-xs ${getStatusColor(lead.status)}`}>
-                        {lead.status}
-                      </Badge>
-                      <Badge className={`text-xs ${getPriorityColor(lead.priority)}`}>
-                        {lead.priority}
-                      </Badge>
-                    </div>
+              {recentLeads.map((lead) => (
+                <div key={lead.id} className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
+                  <div className="space-y-1">
+                    <div className="font-medium">{lead.name}</div>
+                    <div className="text-sm text-gray-500">Assigned to: {lead.assignee}</div>
                   </div>
-                ))
-              ) : (
-                <p className="text-sm text-gray-500">No recent leads</p>
-              )}
+                  <div className="flex gap-2">
+                    <Badge className={`text-xs ${getStatusColor(lead.status)}`}>
+                      {lead.status}
+                    </Badge>
+                    <Badge className={`text-xs ${getPriorityColor(lead.priority)}`}>
+                      {lead.priority}
+                    </Badge>
+                  </div>
+                </div>
+              ))}
             </div>
           </CardContent>
         </Card>
@@ -198,27 +148,23 @@ const Dashboard = () => {
           </CardHeader>
           <CardContent>
             <div className="space-y-4">
-              {todayFollowUps.length > 0 ? (
-                todayFollowUps.map((followup) => (
-                  <div key={followup.id} className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
-                    <div className="space-y-1">
-                      <div className="font-medium">{followup.lead}</div>
-                      <div className="text-sm text-gray-500">
-                        {followup.type} • {followup.assignee}
-                      </div>
-                    </div>
-                    <div className="flex items-center gap-2">
-                      <Badge variant="outline">{followup.time}</Badge>
-                      <Button size="sm" variant="outline">
-                        <CheckCircle className="h-3 w-3 mr-1" />
-                        Mark Done
-                      </Button>
+              {todayFollowUps.map((followup) => (
+                <div key={followup.id} className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
+                  <div className="space-y-1">
+                    <div className="font-medium">{followup.lead}</div>
+                    <div className="text-sm text-gray-500">
+                      {followup.type} • {followup.assignee}
                     </div>
                   </div>
-                ))
-              ) : (
-                <p className="text-sm text-gray-500">No follow-ups today</p>
-              )}
+                  <div className="flex items-center gap-2">
+                    <Badge variant="outline">{followup.time}</Badge>
+                    <Button size="sm" variant="outline">
+                      <CheckCircle className="h-3 w-3 mr-1" />
+                      Mark Done
+                    </Button>
+                  </div>
+                </div>
+              ))}
             </div>
           </CardContent>
         </Card>
