@@ -1,6 +1,6 @@
-
-import { useState } from 'react';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import React, { useState, useEffect, useMemo } from 'react';
+import axios from 'axios';
+import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Badge } from '@/components/ui/badge';
@@ -9,6 +9,11 @@ import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Textarea } from '@/components/ui/textarea';
 import { Plus, Search, Phone, Clock, User, Calendar, Play, Pause } from 'lucide-react';
+import { getAllLeads } from '@/api/leadApi';
+import { getUsers } from '@/api/userApi';
+
+const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:5000/api';
+axios.defaults.baseURL = API_BASE_URL;
 
 interface CallRecord {
   id: number;
@@ -25,73 +30,28 @@ interface CallRecord {
   nextFollowUp: string;
 }
 
-const CallHistory = () => {
-  const [calls, setCalls] = useState<CallRecord[]>([
-    {
-      id: 1,
-      leadId: 1,
-      leadName: 'Acme Corp',
-      caller: 'Rahul Sharma',
-      callType: 'outbound',
-      duration: '15:30',
-      outcome: 'interested',
-      date: '2024-01-17',
-      time: '10:30 AM',
-      notes: 'Discussed cloud migration requirements. Client is interested in our services and wants a detailed proposal.',
-      nextAction: 'Send proposal',
-      nextFollowUp: '2024-01-20'
-    },
-    {
-      id: 2,
-      leadId: 2,
-      leadName: 'Tech Solutions',
-      caller: 'Priya Patel',
-      callType: 'inbound',
-      duration: '8:45',
-      outcome: 'follow-up',
-      date: '2024-01-17',
-      time: '2:15 PM',
-      notes: 'Client called to clarify budget constraints. Explained our flexible pricing options.',
-      nextAction: 'Prepare custom quote',
-      nextFollowUp: '2024-01-19'
-    },
-    {
-      id: 3,
-      leadId: 3,
-      leadName: 'Digital Dynamics',
-      caller: 'Amit Kumar',
-      callType: 'outbound',
-      duration: '22:15',
-      outcome: 'qualified',
-      date: '2024-01-16',
-      time: '4:00 PM',
-      notes: 'Detailed discussion about their software development needs. Budget approved, ready to proceed.',
-      nextAction: 'Schedule demo',
-      nextFollowUp: '2024-01-18'
-    },
-    {
-      id: 4,
-      leadId: 1,
-      leadName: 'Acme Corp',
-      caller: 'Rahul Sharma',
-      callType: 'outbound',
-      duration: '5:20',
-      outcome: 'no-answer',
-      date: '2024-01-15',
-      time: '11:00 AM',
-      notes: 'No answer, left voicemail about initial consultation.',
-      nextAction: 'Call back',
-      nextFollowUp: '2024-01-17'
-    }
-  ]);
+interface ApiLeadResponse {
+  id: number;
+  companyName: string;
+  contactPerson: string;
+  email: string;
+  phone: string;
+}
 
+interface UserResponse {
+  id: number;
+  name: string;
+}
+
+const CallHistory = () => {
+  const [calls, setCalls] = useState<CallRecord[]>([]);
   const [isAddDialogOpen, setIsAddDialogOpen] = useState(false);
   const [searchTerm, setSearchTerm] = useState('');
   const [filterOutcome, setFilterOutcome] = useState('all');
   const [filterCaller, setFilterCaller] = useState('all');
-  
   const [newCall, setNewCall] = useState({
     leadName: '',
+    leadId: null,
     caller: '',
     callType: 'outbound',
     duration: '',
@@ -100,12 +60,16 @@ const CallHistory = () => {
     nextAction: '',
     nextFollowUp: ''
   });
+  
+  const [leads, setLeads] = useState<ApiLeadResponse[]>([]);
+  const [callers, setCallers] = useState<UserResponse[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
 
-  const callers = ['Rahul Sharma', 'Priya Patel', 'Amit Kumar', 'Sneha Singh'];
   const callTypes = ['inbound', 'outbound'];
   const outcomes = ['interested', 'not-interested', 'qualified', 'follow-up', 'no-answer', 'busy', 'voicemail'];
 
-  const getOutcomeColor = (outcome: string) => {
+  const getOutcomeColor = (outcome) => {
     switch (outcome) {
       case 'interested': return 'bg-green-100 text-green-800';
       case 'qualified': return 'bg-emerald-100 text-emerald-800';
@@ -118,38 +82,103 @@ const CallHistory = () => {
     }
   };
 
-  const getCallTypeColor = (type: string) => {
+  const getCallTypeColor = (type) => {
     return type === 'inbound' ? 'bg-blue-100 text-blue-800' : 'bg-green-100 text-green-800';
   };
 
-  const filteredCalls = calls.filter(call => {
-    const matchesSearch = call.leadName.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                         call.caller.toLowerCase().includes(searchTerm.toLowerCase());
-    const matchesOutcome = filterOutcome === 'all' || call.outcome === filterOutcome;
-    const matchesCaller = filterCaller === 'all' || call.caller === filterCaller;
-    return matchesSearch && matchesOutcome && matchesCaller;
-  });
+  const fetchData = async () => {
+    try {
+      setLoading(true);
+      const [callLogsResponse, leadsResponse, usersResponse] = await Promise.all([
+        axios.get(`${API_BASE_URL}/call-logs`),
+        getAllLeads(),
+        getUsers(),
+      ]);
 
-  const handleAddCall = () => {
-    const call: CallRecord = {
-      id: calls.length + 1,
-      leadId: Math.floor(Math.random() * 100),
-      ...newCall,
-      date: new Date().toISOString().split('T')[0],
-      time: new Date().toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' })
-    };
-    setCalls([call, ...calls]);
-    setNewCall({
-      leadName: '',
-      caller: '',
-      callType: 'outbound',
-      duration: '',
-      outcome: '',
-      notes: '',
-      nextAction: '',
-      nextFollowUp: ''
+      const mappedCalls = callLogsResponse.data.map(log => {
+        const lead = leadsResponse.find(l => l.id === log.leadId) || { companyName: 'Unknown Lead' };
+        return {
+          id: log.id,
+          leadId: log.leadId,
+          leadName: lead.companyName,
+          caller: log.name,
+          callType: log.callType || 'outbound',
+          duration: log.duration || '00:00',
+          outcome: log.outcome || 'no-answer',
+          date: new Date(log.createdAt).toISOString().split('T')[0],
+          time: new Date(log.createdAt).toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' }),
+          notes: log.description,
+          nextAction: log.nextAction || '',
+          nextFollowUp: log.nextFollowUp || '',
+        };
+      });
+
+      setCalls(mappedCalls);
+      setLeads(leadsResponse);
+      setCallers(usersResponse);
+
+    } catch (err) {
+      console.error("Failed to fetch data:", err);
+      setError("Failed to fetch data. Please check the backend server.");
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    fetchData();
+  }, []);
+
+  const filteredCalls = useMemo(() => {
+    return calls.filter(call => {
+      const matchesSearch = (call.leadName || '').toLowerCase().includes((searchTerm || '').toLowerCase()) ||
+                           (call.caller || '').toLowerCase().includes((searchTerm || '').toLowerCase());
+      const matchesOutcome = filterOutcome === 'all' || call.outcome === filterOutcome;
+      const matchesCaller = filterCaller === 'all' || call.caller === filterCaller;
+      return matchesSearch && matchesOutcome && matchesCaller;
     });
-    setIsAddDialogOpen(false);
+  }, [calls, searchTerm, filterOutcome, filterCaller]);
+
+  const handleAddCall = async () => {
+    if (!newCall.leadId || !newCall.caller) {
+      alert('Please select a lead and a caller.');
+      return;
+    }
+    
+    try {
+      const lead = leads.find(l => l.id === newCall.leadId);
+      const payload = {
+        leadId: newCall.leadId,
+        name: newCall.caller,
+        email: lead?.email || '',
+        phone: lead?.phone || '',
+        description: newCall.notes,
+        callType: newCall.callType,
+        duration: newCall.duration,
+        outcome: newCall.outcome,
+        nextAction: newCall.nextAction,
+        nextFollowUp: newCall.nextFollowUp,
+      };
+
+      await axios.post(`${API_BASE_URL}/call-logs`, payload);
+      await fetchData();
+      
+      setNewCall({
+        leadName: '',
+        leadId: null,
+        caller: '',
+        callType: 'outbound',
+        duration: '',
+        outcome: '',
+        notes: '',
+        nextAction: '',
+        nextFollowUp: ''
+      });
+      setIsAddDialogOpen(false);
+    } catch (err) {
+      setError(`Failed to add call record: ${err.message || 'Unknown error'}`);
+      console.error('Add Call Error:', err);
+    }
   };
 
   const getTotalDuration = () => {
@@ -159,11 +188,14 @@ const CallHistory = () => {
     }, 0);
   };
 
-  const formatTotalDuration = (totalSeconds: number) => {
+  const formatTotalDuration = (totalSeconds) => {
     const hours = Math.floor(totalSeconds / 3600);
     const minutes = Math.floor((totalSeconds % 3600) / 60);
     return `${hours}h ${minutes}m`;
   };
+
+  if (loading) return <div className="p-4 text-center">Loading...</div>;
+  if (error) return <div className="p-4 text-red-600">{error}</div>;
 
   return (
     <div className="space-y-6">
@@ -247,7 +279,7 @@ const CallHistory = () => {
             <SelectContent>
               <SelectItem value="all">All Callers</SelectItem>
               {callers.map(caller => (
-                <SelectItem key={caller} value={caller}>{caller}</SelectItem>
+                <SelectItem key={caller.id} value={caller.name}>{caller.name}</SelectItem>
               ))}
             </SelectContent>
           </Select>
@@ -267,11 +299,18 @@ const CallHistory = () => {
             <div className="grid grid-cols-2 gap-4">
               <div className="space-y-2">
                 <Label htmlFor="leadName">Lead/Company Name</Label>
-                <Input
-                  id="leadName"
-                  value={newCall.leadName}
-                  onChange={(e) => setNewCall({...newCall, leadName: e.target.value})}
-                />
+                <Select
+                  onValueChange={(value) => setNewCall({...newCall, leadId: parseInt(value)})}
+                >
+                  <SelectTrigger>
+                    <SelectValue placeholder="Select Lead" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {leads.map(lead => (
+                      <SelectItem key={lead.id} value={lead.id.toString()}>{lead.companyName}</SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
               </div>
               <div className="space-y-2">
                 <Label htmlFor="caller">Caller</Label>
@@ -281,7 +320,7 @@ const CallHistory = () => {
                   </SelectTrigger>
                   <SelectContent>
                     {callers.map(caller => (
-                      <SelectItem key={caller} value={caller}>{caller}</SelectItem>
+                      <SelectItem key={caller.id} value={caller.name}>{caller.name}</SelectItem>
                     ))}
                   </SelectContent>
                 </Select>
@@ -416,7 +455,8 @@ const CallHistory = () => {
                       </div>
                     </td>
                     <td className="p-4">
-                      {call.nextFollowUp ? (
+                      {call.nextFollowUp ?
+                      (
                         <div className="flex items-center gap-1 text-sm">
                           <Calendar className="h-3 w-3 text-orange-500" />
                           {call.nextFollowUp}
