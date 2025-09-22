@@ -1,3 +1,4 @@
+import { useEffect, useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
@@ -19,23 +20,47 @@ interface FollowUp {
   assignee: string;
 }
 
-interface DashboardProps {
-  stats?: {
-    totalLeads: number;
-    newLeads: number;
-    todayFollowUps: number;
-    activeCalls: number;
-    conversionRate: number;
-  };
-  recentLeads?: Lead[];
-  todayFollowUps?: FollowUp[];
+interface Stats {
+  totalLeads: number;
+  newLeads: number;
+  todayFollowUps: number;
+  activeCalls: number;
+  conversionRate: number;
 }
 
-const Dashboard = ({ 
-  stats = { totalLeads: 0, newLeads: 0, todayFollowUps: 0, activeCalls: 0, conversionRate: 0 },
-  recentLeads = [],
-  todayFollowUps = []
-}: DashboardProps) => {
+const Dashboard = () => {
+  const [stats, setStats] = useState<Stats | null>(null);
+  const [recentLeads, setRecentLeads] = useState<Lead[]>([]);
+  const [todayFollowUps, setTodayFollowUps] = useState<FollowUp[]>([]);
+  const [loading, setLoading] = useState(true);
+
+  // Fetch data from backend
+  useEffect(() => {
+    const fetchData = async () => {
+      try {
+        const [statsRes, leadsRes, followUpsRes] = await Promise.all([
+          fetch('/api/stats'),
+          fetch('/api/leads/recent'),
+          fetch('/api/followups/today'),
+        ]);
+
+        const statsData = await statsRes.json();
+        const leadsData = await leadsRes.json();
+        const followUpsData = await followUpsRes.json();
+
+        setStats(statsData);
+        setRecentLeads(leadsData);
+        setTodayFollowUps(followUpsData);
+      } catch (err) {
+        console.error('Failed to load dashboard data:', err);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchData();
+  }, []);
+
   const getStatusColor = (status: string) => {
     switch (status) {
       case 'new': return 'bg-blue-100 text-blue-800';
@@ -55,10 +80,19 @@ const Dashboard = ({
     }
   };
 
+  if (loading) {
+    return <p className="text-center text-gray-500">Loading dashboard...</p>;
+  }
+
+  if (!stats) {
+    return <p className="text-center text-red-500">Failed to load dashboard data.</p>;
+  }
+
   return (
     <div className="space-y-6">
       {/* Stats Cards */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-6">
+        {/* Total Leads */}
         <Card className="bg-gradient-to-r from-blue-500 to-blue-600 text-white">
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
             <CardTitle className="text-sm font-medium">Total Leads</CardTitle>
@@ -70,6 +104,7 @@ const Dashboard = ({
           </CardContent>
         </Card>
 
+        {/* New Leads */}
         <Card className="bg-gradient-to-r from-green-500 to-green-600 text-white">
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
             <CardTitle className="text-sm font-medium">New Leads</CardTitle>
@@ -81,6 +116,7 @@ const Dashboard = ({
           </CardContent>
         </Card>
 
+        {/* Today's Follow-ups */}
         <Card className="bg-gradient-to-r from-orange-500 to-orange-600 text-white">
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
             <CardTitle className="text-sm font-medium">Today's Follow-ups</CardTitle>
@@ -92,6 +128,7 @@ const Dashboard = ({
           </CardContent>
         </Card>
 
+        {/* Active Calls */}
         <Card className="bg-gradient-to-r from-purple-500 to-purple-600 text-white">
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
             <CardTitle className="text-sm font-medium">Active Calls</CardTitle>
@@ -103,6 +140,7 @@ const Dashboard = ({
           </CardContent>
         </Card>
 
+        {/* Conversion Rate */}
         <Card className="bg-gradient-to-r from-indigo-500 to-indigo-600 text-white">
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
             <CardTitle className="text-sm font-medium">Conversion Rate</CardTitle>
