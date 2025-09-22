@@ -1,8 +1,23 @@
-
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
-import { Users, UserPlus, Phone, Calendar, TrendingUp, AlertCircle, CheckCircle } from 'lucide-react';
+import { Users, UserPlus, Phone, Calendar, TrendingUp, CheckCircle } from 'lucide-react';
+
+interface Lead {
+  id: number;
+  name: string;
+  status: string;
+  priority: string;
+  assignee: string;
+}
+
+interface FollowUp {
+  id: number;
+  lead: string;
+  time: string;
+  type: string;
+  assignee: string;
+}
 
 interface DashboardProps {
   stats: {
@@ -12,22 +27,11 @@ interface DashboardProps {
     activeCalls: number;
     conversionRate: number;
   };
+  recentLeads: Lead[];
+  todayFollowUps: FollowUp[];
 }
 
-const Dashboard = ({ stats }: DashboardProps) => {
-  const recentLeads = [
-    { id: 1, name: 'Acme Corp', status: 'new', priority: 'high', assignee: 'Rahul Sharma' },
-    { id: 2, name: 'Tech Solutions', status: 'contacted', priority: 'medium', assignee: 'Priya Patel' },
-    { id: 3, name: 'Digital Dynamics', status: 'qualified', priority: 'high', assignee: 'Amit Kumar' },
-    { id: 4, name: 'Innovation Labs', status: 'proposal', priority: 'low', assignee: 'Sneha Singh' },
-  ];
-
-  const todayFollowUps = [
-    { id: 1, lead: 'Acme Corp', time: '10:00 AM', type: 'Call', assignee: 'Rahul Sharma' },
-    { id: 2, lead: 'Tech Solutions', time: '2:00 PM', type: 'Email', assignee: 'Priya Patel' },
-    { id: 3, lead: 'Digital Dynamics', time: '4:30 PM', type: 'Meeting', assignee: 'Amit Kumar' },
-  ];
-
+const Dashboard = ({ stats, recentLeads, todayFollowUps }: DashboardProps) => {
   const getStatusColor = (status: string) => {
     switch (status) {
       case 'new': return 'bg-blue-100 text-blue-800';
@@ -118,22 +122,26 @@ const Dashboard = ({ stats }: DashboardProps) => {
           </CardHeader>
           <CardContent>
             <div className="space-y-4">
-              {recentLeads.map((lead) => (
-                <div key={lead.id} className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
-                  <div className="space-y-1">
-                    <div className="font-medium">{lead.name}</div>
-                    <div className="text-sm text-gray-500">Assigned to: {lead.assignee}</div>
+              {recentLeads.length > 0 ? (
+                recentLeads.map((lead) => (
+                  <div key={lead.id} className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
+                    <div className="space-y-1">
+                      <div className="font-medium">{lead.name}</div>
+                      <div className="text-sm text-gray-500">Assigned to: {lead.assignee}</div>
+                    </div>
+                    <div className="flex gap-2">
+                      <Badge className={`text-xs ${getStatusColor(lead.status)}`}>
+                        {lead.status}
+                      </Badge>
+                      <Badge className={`text-xs ${getPriorityColor(lead.priority)}`}>
+                        {lead.priority}
+                      </Badge>
+                    </div>
                   </div>
-                  <div className="flex gap-2">
-                    <Badge className={`text-xs ${getStatusColor(lead.status)}`}>
-                      {lead.status}
-                    </Badge>
-                    <Badge className={`text-xs ${getPriorityColor(lead.priority)}`}>
-                      {lead.priority}
-                    </Badge>
-                  </div>
-                </div>
-              ))}
+                ))
+              ) : (
+                <p className="text-sm text-gray-500">No recent leads</p>
+              )}
             </div>
           </CardContent>
         </Card>
@@ -148,23 +156,27 @@ const Dashboard = ({ stats }: DashboardProps) => {
           </CardHeader>
           <CardContent>
             <div className="space-y-4">
-              {todayFollowUps.map((followup) => (
-                <div key={followup.id} className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
-                  <div className="space-y-1">
-                    <div className="font-medium">{followup.lead}</div>
-                    <div className="text-sm text-gray-500">
-                      {followup.type} • {followup.assignee}
+              {todayFollowUps.length > 0 ? (
+                todayFollowUps.map((followup) => (
+                  <div key={followup.id} className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
+                    <div className="space-y-1">
+                      <div className="font-medium">{followup.lead}</div>
+                      <div className="text-sm text-gray-500">
+                        {followup.type} • {followup.assignee}
+                      </div>
+                    </div>
+                    <div className="flex items-center gap-2">
+                      <Badge variant="outline">{followup.time}</Badge>
+                      <Button size="sm" variant="outline">
+                        <CheckCircle className="h-3 w-3 mr-1" />
+                        Mark Done
+                      </Button>
                     </div>
                   </div>
-                  <div className="flex items-center gap-2">
-                    <Badge variant="outline">{followup.time}</Badge>
-                    <Button size="sm" variant="outline">
-                      <CheckCircle className="h-3 w-3 mr-1" />
-                      Mark Done
-                    </Button>
-                  </div>
-                </div>
-              ))}
+                ))
+              ) : (
+                <p className="text-sm text-gray-500">No follow-ups today</p>
+              )}
             </div>
           </CardContent>
         </Card>
