@@ -13,94 +13,119 @@ interface LeadTableProps {
 }
 
 const LeadTable = ({ leads, onViewLead, onEditLead, onCallLead }: LeadTableProps) => {
+  // ✅ helper: format ISO dates nicely
+  const formatDate = (dateString?: string) => {
+    if (!dateString) return '-';
+    const date = new Date(dateString);
+    return `${date.toLocaleDateString()} ${date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}`;
+  };
 
   return (
     <Card>
       <CardContent className="p-0">
-        <div className="flex justify-center">
-          <table className="w-full min-w-[1200px] bg-white">
+        <div className="w-full overflow-x-auto">
+          <table className="w-full border-collapse text-sm">
             <thead className="bg-gray-50 border-b">
               <tr>
-                <th className="text-left p-4 font-medium bg-white">Lead Name</th>
-                <th className="text-left p-4 font-medium bg-white">Company</th>
-                <th className="text-left p-4 font-medium bg-white">Contact</th>
-                <th className="text-left p-4 font-medium bg-white">Status</th>
-                <th className="text-left p-4 font-medium bg-white">Priority</th>
-                <th className="text-left p-4 font-medium bg-white">Assignee</th>
-                <th className="text-left p-4 font-medium bg-white">Lead Source</th>
-                <th className="text-left p-4 font-medium bg-white">Follow-Up Time</th>
-                <th className="text-left p-4 font-medium bg-white">Next Follow-up</th>
-                <th className="text-left p-4 font-medium bg-white">Service</th>
-                <th className="text-left p-4 font-medium bg-white">Location</th> {/* Added Location Header */}
-                <th className="text-left p-4 font-medium bg-white">Actions</th>
+                <th className="text-left px-4 py-3 font-medium">Lead Name</th>
+                <th className="text-left px-4 py-3 font-medium">Company</th>
+                <th className="text-left px-4 py-3 font-medium">Contact</th>
+                <th className="text-left px-4 py-3 font-medium">Status</th>
+                <th className="text-left px-4 py-3 font-medium">Priority</th>
+                <th className="text-left px-4 py-3 font-medium">Assignee</th>
+                <th className="text-left px-4 py-3 font-medium">Lead Source</th>
+                <th className="text-left px-4 py-3 font-medium">Follow-Up Time</th>
+                <th className="text-left px-4 py-3 font-medium">Next Follow-up</th>
+                <th className="text-left px-4 py-3 font-medium">Service</th>
+                <th className="text-left px-4 py-3 font-medium">Location</th>
+                <th className="text-left px-4 py-3 font-medium">Actions</th>
               </tr>
             </thead>
             <tbody>
               {leads.map((lead) => (
-                <tr key={lead.id} className="border-b hover:bg-gray-50 bg-white">
-                  <td className="p-4 text-sm font-medium bg-white">{lead.leadName}</td>
-                  <td className="p-4 bg-white">
+                <tr key={lead.id} className="border-b hover:bg-gray-50">
+                  {/* Lead Name */}
+                  <td className="px-4 py-3 font-medium">{lead.leadName}</td>
+
+                  {/* Company */}
+                  <td className="px-4 py-3">
                     <div>
                       <div className="font-medium">{lead.companyName}</div>
-                      <div className="text-sm text-gray-500">{lead.contactPerson}</div>
+                      {lead.contactPerson && (
+                        <div className="text-xs text-gray-500">{lead.contactPerson}</div>
+                      )}
                     </div>
                   </td>
-                  <td className="p-4 bg-white">
+
+                  {/* Contact */}
+                  <td className="px-4 py-3">
                     <div className="space-y-1">
-                      <div className="flex items-center gap-1 text-sm">
-                        <Mail className="h-3 w-3" />
-                        {lead.email}
-                      </div>
-                      <div className="flex items-center gap-1 text-sm">
-                        <Phone className="h-3 w-3" />
-                        {lead.phone}
-                      </div>
+                      {lead.email && (
+                        <div className="flex items-center gap-1 text-sm">
+                          <Mail className="h-3 w-3" />
+                          {lead.email}
+                        </div>
+                      )}
+                      {lead.phone && (
+                        <div className="flex items-center gap-1 text-sm">
+                          <Phone className="h-3 w-3" />
+                          {lead.phone}
+                        </div>
+                      )}
+                      {!lead.email && !lead.phone && <span className="text-gray-400">-</span>}
                     </div>
                   </td>
-                  <td className="p-4 bg-white">
-                    <Badge className={`${getStatusColor(lead.status)}`}>
-                      {lead.status}
-                    </Badge>
+
+                  {/* Status */}
+                  <td className="px-4 py-3">
+                    <Badge className={getStatusColor(lead.status)}>{lead.status}</Badge>
                   </td>
-                  <td className="p-4 bg-white">
-                    <Badge className={`${getPriorityColor(lead.priority)}`}>
-                      {lead.priority}
-                    </Badge>
+
+                  {/* Priority */}
+                  <td className="px-4 py-3">
+                    <Badge className={getPriorityColor(lead.priority)}>{lead.priority}</Badge>
                   </td>
-                  <td className="p-4 text-sm bg-white">{lead.assignee}</td>
-                  <td className="p-4 text-sm bg-white">
+
+                  {/* Assignee */}
+                  <td className="px-4 py-3">{lead.assignee}</td>
+
+                  {/* Lead Source */}
+                  <td className="px-4 py-3">
                     {lead.leadSource || <span className="text-gray-400">-</span>}
                   </td>
-                  <td className="p-4 text-sm bg-white">
-                    {lead.followUpTime ? (
-                      <div className="flex items-center gap-1 text-sm">
-                        <Clock className="h-3 w-3" />
-                        {/* ✅ UPDATED: Ensure followUpTime is parsed correctly as a time string */}
-                        {lead.followUpTime} 
-                      </div>
-                    ) : (
-                      <span className="text-gray-400">-</span>
-                    )}
-                  </td>
-                  <td className="p-4 bg-white">
-                    {lead.nextFollowUpDate ? (
-                      <div className="flex items-center gap-1 text-sm">
-                        <Calendar className="h-3 w-3" />
-                        {new Date(lead.nextFollowUpDate).toLocaleDateString()}
-                      </div>
-                    ) : (
-                      <span className="text-gray-400">-</span>
-                    )}
-                  </td>
-                  <td className="p-4 text-sm bg-white">
-                   {lead.service || <span className="text-gray-400">-</span>}
-                  </td>
-                   {/* Added Location Data */}
-                   <td className="p-4 text-sm bg-white">
-                    {lead.location || <span className="text-gray-400">-</span>}
-                   </td>
 
-                  <td className="p-4 bg-white">
+                  {/* Follow-Up */}
+                  <td className="px-4 py-3">
+                    {lead.followUpTime ? (
+                      <div className="flex items-center gap-1">
+                        <Clock className="h-3 w-3" />
+                        {formatDate(lead.followUpTime)}
+                      </div>
+                    ) : (
+                      <span className="text-gray-400">-</span>
+                    )}
+                  </td>
+
+                  {/* Next Follow-up */}
+                  <td className="px-4 py-3">
+                    {lead.nextFollowUpDate ? (
+                      <div className="flex items-center gap-1">
+                        <Calendar className="h-3 w-3" />
+                        {formatDate(lead.nextFollowUpDate)}
+                      </div>
+                    ) : (
+                      <span className="text-gray-400">-</span>
+                    )}
+                  </td>
+
+                  {/* Service */}
+                  <td className="px-4 py-3">{lead.service || <span className="text-gray-400">-</span>}</td>
+
+                  {/* Location */}
+                  <td className="px-4 py-3">{lead.location || <span className="text-gray-400">-</span>}</td>
+
+                  {/* Actions */}
+                  <td className="px-4 py-3">
                     <div className="flex gap-2">
                       <Button size="sm" variant="outline" onClick={() => onViewLead(lead)}>
                         <Eye className="h-3 w-3" />
