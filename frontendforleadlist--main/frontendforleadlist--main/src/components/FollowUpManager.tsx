@@ -40,16 +40,14 @@ interface ApiLeadResponse {
 interface FollowUp {
   id: number;
   leadId: number;
-  leadName: string;
-  // Using companyName for display
+  leadName: string; // Using companyName for display
   assignee: string;
   type: string;
   priority: string;
   status: string;
   scheduledDate: string;
   scheduledTime: string;
-  description: string;
-  // Using service for description
+  description: string; // Using service for description
   notes: string;
   createdDate: string;
   completedDate?: string;
@@ -86,6 +84,8 @@ const FollowUpManager: React.FC = () => {
 
   const [historyLogs, setHistoryLogs] = useState<FollowUpHistoryItem[]>([]);
   const [isHistoryLoading, setIsHistoryLoading] = useState(false);
+
+
   const [newFollowUp, setNewFollowUp] = useState<Omit<FollowUp, 'id' | 'leadId' | 'createdDate' | 'updatedAt'>>({
     leadName: '',
     assignee: '',
@@ -105,6 +105,7 @@ const FollowUpManager: React.FC = () => {
   const priorities = ['low', 'medium', 'high'];
   // ✅ FIX: Combined all relevant statuses from both API response and internal component logic
   const statuses = ['pending', 'completed', 'overdue', 'cancelled', 'new', 'contacted', 'qualified', 'proposal', 'won', 'lost'];
+
 
   useEffect(() => {
     const fetchInitialData = async () => {
@@ -128,8 +129,7 @@ const FollowUpManager: React.FC = () => {
 
         const mappedFollowUps: FollowUp[] = leadsData.map((apiLead) => {
           // ✅ FIX: Ensure currentStatus can correctly become 'overdue' if applicable
-          let currentStatus: FollowUp['status'] = apiLead.status;
-          // Start with API status, then potentially update
+          let currentStatus: FollowUp['status'] = apiLead.status; // Start with API status, then potentially update
           const scheduledDate = apiLead.nextFollowUpDate ? new Date(apiLead.nextFollowUpDate).toISOString().split('T')[0] : '';
           const today = new Date();
           today.setHours(0,0,0,0); // Normalize today for comparison
@@ -198,6 +198,7 @@ const FollowUpManager: React.FC = () => {
     }
   }, [historyFollowUp]);
 
+
   const getStatusColor = (status: string) => {
     switch (status) {
       case 'new': return 'bg-blue-100 text-blue-800';
@@ -213,6 +214,7 @@ const FollowUpManager: React.FC = () => {
       default: return 'bg-gray-100 text-gray-800';
     }
   };
+
   const getPriorityColor = (priority: string) => ({ high: 'bg-red-100 text-red-800', medium: 'bg-orange-100 text-orange-800', low: 'bg-green-100 text-green-800' }[priority] || 'bg-gray-100 text-gray-800');
   const getTypeIcon = (type: string) => { switch (type) { case 'call': return <Phone className="h-4 w-4" />; case 'email': return <Mail className="h-4 w-4" />; case 'meeting': return <Video className="h-4 w-4" />; case 'demo': return <Video className="h-4 w-4" />; default: return <Calendar className="h-4 w-4" />; } };
   const isToday = (date: string) => date ? new Date(date).toDateString() === new Date().toDateString() : false;
@@ -248,11 +250,11 @@ const FollowUpManager: React.FC = () => {
         location: selectedLeadForNewFollowUp.location,
       };
       
-      // ✅ MODIFICATION: Change from PUT to POST to create a new lead entry
-      await axios.post(`${API_BASE_URL}/leads`, payload);
+      await axios.put(`${API_BASE_URL}/leads/${selectedLeadForNewFollowUp.id}`, payload);
       
       const response = await axios.get<ApiLeadResponse[]>(`${API_BASE_URL}/leads`);
       const updatedLeadsData = Array.isArray(response.data) ? response.data : [];
+
       const mappedFollowUps: FollowUp[] = updatedLeadsData.map((apiLead) => {
           let currentStatus: FollowUp['status'] = apiLead.status;
           const scheduledDate = apiLead.nextFollowUpDate ? new Date(apiLead.nextFollowUpDate).toISOString().split('T')[0] : '';
@@ -291,6 +293,7 @@ const FollowUpManager: React.FC = () => {
       });
 
       setFollowUps(mappedFollowUps);
+
       setNewFollowUp({
         leadName: '', assignee: '', type: 'call', priority: 'medium', status: 'pending', scheduledDate: '', scheduledTime: '', description: '', notes: '',
       });
@@ -318,12 +321,13 @@ const FollowUpManager: React.FC = () => {
             notes: editFollowUp.notes,
         };
         const url = `${API_BASE_URL}/leads/${editFollowUp.leadId}`;
-        // ✅ The PUT request is correctly handled by the backend's updateLead controller
         await axios.put(url, apiPayload);
         
         setFollowUps(prev => prev.map(f => (f.id === editFollowUp.id) ? { ...f, ...editFollowUp } : f));
+
         const response = await axios.get<ApiLeadResponse[]>(`${API_BASE_URL}/leads`);
         const updatedLeadsData = Array.isArray(response.data) ? response.data : [];
+
         const mappedFollowUps: FollowUp[] = updatedLeadsData.map((apiLead) => {
             let currentStatus: FollowUp['status'] = apiLead.status;
             const scheduledDate = apiLead.nextFollowUpDate ? new Date(apiLead.nextFollowUpDate).toISOString().split('T')[0] : '';
@@ -337,7 +341,6 @@ const FollowUpManager: React.FC = () => {
                     currentStatus = 'overdue';
                 }
             }
-      
             let followUpType = 'call';
             const serviceLower = apiLead.service.toLowerCase();
             if (serviceLower.includes('email')) followUpType = 'email';
@@ -372,15 +375,15 @@ const FollowUpManager: React.FC = () => {
     const followUpToUpdate = followUps.find((f) => f.id === id);
     if (!followUpToUpdate) return;
     try {
-        // ✅ The PUT request is correctly handled by the backend's updateLead controller
-        await axios.put(`${API_BASE_URL}/leads/${followUpToUpdate.leadId}`, { ...followUpToUpdate, status: 'completed' });
+        await axios.put(`${API_BASE_URL}/leads/${followUpToUpdate.leadId}`, { ...followUpToUpdate, status: 'completed' }); 
         setFollowUps(prev => prev.map(f => f.id === id ? { ...f, status: 'completed', completedDate: new Date().toISOString().split('T')[0] } : f));
     } catch (err) {
         setError('Failed to update follow-up status.');
     }
   };
+
   const stats = useMemo(() => ({ today: followUps.filter(f => isToday(f.scheduledDate) && f.status === 'pending').length, overdue: followUps.filter(f => f.status === 'overdue').length, pending: followUps.filter(f => f.status === 'pending').length, completedThisWeek: followUps.filter(f => { if (!f.completedDate) return false; const completedDate = new Date(f.completedDate); const weekAgo = new Date(); weekAgo.setDate(weekAgo.getDate() - 7); return completedDate >= weekAgo; }).length }), [followUps]);
-  
+
   if (loading) return <div className="p-4 text-center">Loading...</div>;
   if (error) return <div className="p-4 text-red-600">{error}</div>;
 
@@ -529,7 +532,7 @@ const FollowUpManager: React.FC = () => {
                 <Select value={editFollowUp.status} onValueChange={(value) => setEditFollowUp({ ...editFollowUp, status: value })}>
                     <SelectTrigger id="editStatus"><SelectValue placeholder="Select status" /></SelectTrigger>
                     <SelectContent>
-                        {statuses.map((status) => (
+                      {statuses.map((status) => (
                         <SelectItem key={status} value={status}>
                           {status.charAt(0).toUpperCase() + status.slice(1)}
                         </SelectItem>
@@ -544,14 +547,15 @@ const FollowUpManager: React.FC = () => {
             <div className="space-y-2"><Label htmlFor="editScheduledDate">Scheduled Date</Label><Input id="editScheduledDate" type="date" value={editFollowUp.scheduledDate} onChange={(e) => setEditFollowUp({ ...editFollowUp, scheduledDate: e.target.value })}/></div>
             <div className="space-y-2"><Label htmlFor="editScheduledTime">Scheduled Time</Label><Input id="editScheduledTime" type="time" value={editFollowUp.scheduledTime} onChange={(e) => setEditFollowUp({ ...editFollowUp, scheduledTime: e.target.value })}/></div>
             <div className="col-span-2 space-y-2"><Label htmlFor="editNotes">Notes</Label><Textarea id="editNotes" value={editFollowUp.notes} onChange={(e) => setEditFollowUp({ ...editFollowUp, notes: e.target.value })}/></div>
-          </div><div className="flex justify-end gap-2 mt-4"><Button variant="outline" onClick={() => setEditFollowUp(null)}>Cancel</Button><Button onClick={handleEditFollowUp} className="bg-blue-600 hover:bg-blue-700">Save</Button></div></div>)}
+            </div><div className="flex justify-end gap-2 mt-4"><Button variant="outline" onClick={() => setEditFollowUp(null)}>Cancel</Button><Button onClick={handleEditFollowUp} className="bg-blue-600 hover:bg-blue-700">Save</Button></div></div>)}
         </DialogContent>
       </Dialog>
 
       <Dialog open={!!historyFollowUp} onOpenChange={() => setHistoryFollowUp(null)}>
         <DialogContent className="max-w-2xl"><DialogHeader><DialogTitle>Follow-up History for: {historyFollowUp?.leadName}</DialogTitle><DialogDescription>A log of all updates and changes for this lead.</DialogDescription></DialogHeader>
           <div className="mt-4 max-h-[60vh] overflow-y-auto pr-2">
-            {isHistoryLoading ? (<p>Loading history...</p>) : historyLogs.length > 0 ? (
+            {isHistoryLoading ? (<p>Loading history...</p>) 
+            : historyLogs.length > 0 ? (
               <div className="space-y-6">
                 {historyLogs.map(log => (
                   <div key={log.id} className="flex gap-4">
@@ -580,6 +584,5 @@ class ErrorBoundary extends React.Component<{ children: React.ReactNode }, { has
   componentDidCatch(error: Error, errorInfo: React.ErrorInfo) { console.error('ErrorBoundary caught an error:', error, errorInfo); }
   render() { if (this.state.hasError) { return <div className="p-4 text-red-600">Something went wrong. Please try again.</div>; } return this.props.children; }
 }
-
 const FollowUpManagerWithErrorBoundary: React.FC = () => (<ErrorBoundary><FollowUpManager /></ErrorBoundary>);
 export default FollowUpManagerWithErrorBoundary;
