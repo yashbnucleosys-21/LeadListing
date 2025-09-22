@@ -1,120 +1,73 @@
-import { Badge } from '@/components/ui/badge';
-import { Button } from '@/components/ui/button';
-import { Card, CardContent } from '@/components/ui/card';
-import { Edit, Phone, Mail, Calendar, Eye, Clock } from 'lucide-react';
-import { Lead } from '@/types/Lead';
-import { getStatusColor, getPriorityColor } from '@/utils/leadUtils';
+import React from "react";
 
-interface LeadTableProps {
-  leads: Lead[];
-  onViewLead: (lead: Lead) => void;
-  onEditLead: (lead: Lead) => void;
-  onCallLead: (lead: Lead) => void;
-}
-
-const LeadTable = ({ leads, onViewLead, onEditLead, onCallLead }: LeadTableProps) => {
+const LeadTable = ({ leads }) => {
   return (
-    <Card>
-      <CardContent className="p-0">
-        <div className="flex justify-center overflow-x-auto">
-          <table className="w-full min-w-[1200px] text-sm border-collapse">
-            <thead className="bg-gray-100">
-              <tr>
-                <th className="text-left px-4 py-3 font-semibold">Lead Name</th>
-                <th className="text-left px-4 py-3 font-semibold">Company</th>
-                <th className="text-left px-4 py-3 font-semibold">Contact</th>
-                <th className="text-left px-4 py-3 font-semibold">Status</th>
-                <th className="text-left px-4 py-3 font-semibold">Priority</th>
-                <th className="text-left px-4 py-3 font-semibold">Assignee</th>
-                <th className="text-left px-4 py-3 font-semibold">Lead Source</th>
-                <th className="text-left px-4 py-3 font-semibold">Follow-Up Time</th>
-                <th className="text-left px-4 py-3 font-semibold">Next Follow-up</th>
-                <th className="text-left px-4 py-3 font-semibold">Service</th>
-                <th className="text-left px-4 py-3 font-semibold">Location</th>
-                <th className="text-left px-4 py-3 font-semibold">Actions</th>
-              </tr>
-            </thead>
-            <tbody>
-              {leads.map((lead, idx) => (
-                <tr
-                  key={lead.id}
-                  className={idx % 2 === 0 ? 'bg-white hover:bg-gray-50' : 'bg-gray-50 hover:bg-gray-100'}
+    <div className="overflow-x-auto border rounded-2xl shadow-sm">
+      <table className="w-full text-sm border-collapse">
+        <thead className="bg-gray-100 sticky top-0 z-10">
+          <tr>
+            <th className="px-4 py-3 font-semibold text-gray-700 text-left whitespace-nowrap">Lead Name</th>
+            <th className="px-4 py-3 font-semibold text-gray-700 text-left whitespace-nowrap">Company</th>
+            <th className="px-4 py-3 font-semibold text-gray-700 text-left whitespace-nowrap">Contact</th>
+            <th className="px-4 py-3 font-semibold text-gray-700 text-left whitespace-nowrap">Status</th>
+            <th className="px-4 py-3 font-semibold text-gray-700 text-left whitespace-nowrap">Priority</th>
+            <th className="px-4 py-3 font-semibold text-gray-700 text-left whitespace-nowrap">Assignee</th>
+            <th className="px-4 py-3 font-semibold text-gray-700 text-left whitespace-nowrap">Lead Source</th>
+            <th className="px-4 py-3 font-semibold text-gray-700 text-left whitespace-nowrap">Follow-Up Time</th>
+            <th className="px-4 py-3 font-semibold text-gray-700 text-left whitespace-nowrap">Next Follow-up</th>
+            <th className="px-4 py-3 font-semibold text-gray-700 text-left whitespace-nowrap">Service</th>
+            <th className="px-4 py-3 font-semibold text-gray-700 text-left whitespace-nowrap">Location</th>
+            <th className="px-4 py-3 font-semibold text-gray-700 text-left whitespace-nowrap">Actions</th>
+          </tr>
+        </thead>
+        <tbody className="divide-y divide-gray-200">
+          {leads.map((lead, idx) => (
+            <tr key={idx} className="hover:bg-gray-50 transition">
+              <td className="px-4 py-3">{lead.name}</td>
+              <td className="px-4 py-3">{lead.company}</td>
+              <td className="px-4 py-3">
+                <div className="flex flex-col">
+                  <span>{lead.email || "NA"}</span>
+                  <span className="text-gray-500 text-xs">{lead.phone}</span>
+                </div>
+              </td>
+              <td className="px-4 py-3">
+                <span className="px-2 py-1 text-xs rounded-full bg-blue-100 text-blue-600 font-medium">
+                  {lead.status}
+                </span>
+              </td>
+              <td className="px-4 py-3">
+                <span
+                  className={`px-2 py-1 text-xs rounded-full font-medium ${
+                    lead.priority === "high"
+                      ? "bg-red-100 text-red-600"
+                      : lead.priority === "medium"
+                      ? "bg-orange-100 text-orange-600"
+                      : "bg-green-100 text-green-600"
+                  }`}
                 >
-                  <td className="px-4 py-3 font-medium">{lead.leadName}</td>
-                  <td className="px-4 py-3">
-                    <div>
-                      <div className="font-medium">{lead.companyName}</div>
-                      <div className="text-gray-500">{lead.contactPerson}</div>
-                    </div>
-                  </td>
-                  <td className="px-4 py-3">
-                    <div className="space-y-1">
-                      <div className="flex items-center gap-1">
-                        <Mail className="h-3 w-3 text-gray-500" />
-                        {lead.email}
-                      </div>
-                      <div className="flex items-center gap-1">
-                        <Phone className="h-3 w-3 text-gray-500" />
-                        {lead.phone}
-                      </div>
-                    </div>
-                  </td>
-                  <td className="px-4 py-3">
-                    <Badge className={`${getStatusColor(lead.status)}`}>{lead.status}</Badge>
-                  </td>
-                  <td className="px-4 py-3">
-                    <Badge className={`${getPriorityColor(lead.priority)}`}>{lead.priority}</Badge>
-                  </td>
-                  <td className="px-4 py-3">{lead.assignee}</td>
-                  <td className="px-4 py-3">
-                    {lead.leadSource || <span className="text-gray-400">-</span>}
-                  </td>
-                  <td className="px-4 py-3">
-                    {lead.followUpTime ? (
-                      <div className="flex items-center gap-1">
-                        <Clock className="h-3 w-3 text-gray-500" />
-                        {lead.followUpTime}
-                      </div>
-                    ) : (
-                      <span className="text-gray-400">-</span>
-                    )}
-                  </td>
-                  <td className="px-4 py-3">
-                    {lead.nextFollowUpDate ? (
-                      <div className="flex items-center gap-1">
-                        <Calendar className="h-3 w-3 text-gray-500" />
-                        {lead.nextFollowUpDate}
-                      </div>
-                    ) : (
-                      <span className="text-gray-400">-</span>
-                    )}
-                  </td>
-                  <td className="px-4 py-3">
-                    {lead.service || <span className="text-gray-400">-</span>}
-                  </td>
-                  <td className="px-4 py-3">
-                    {lead.location || <span className="text-gray-400">-</span>}
-                  </td>
-                  <td className="px-4 py-3">
-                    <div className="flex gap-2">
-                      <Button size="sm" variant="outline" onClick={() => onViewLead(lead)}>
-                        <Eye className="h-3 w-3" />
-                      </Button>
-                      <Button size="sm" variant="outline" onClick={() => onEditLead(lead)}>
-                        <Edit className="h-3 w-3" />
-                      </Button>
-                      <Button size="sm" variant="outline" onClick={() => onCallLead(lead)}>
-                        <Phone className="h-3 w-3" />
-                      </Button>
-                    </div>
-                  </td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
-        </div>
-      </CardContent>
-    </Card>
+                  {lead.priority}
+                </span>
+              </td>
+              <td className="px-4 py-3">{lead.assignee}</td>
+              <td className="px-4 py-3">{lead.source}</td>
+              <td className="px-4 py-3">{lead.followUpTime}</td>
+              <td className="px-4 py-3">{lead.nextFollowUp}</td>
+              <td className="px-4 py-3">{lead.service}</td>
+              <td className="px-4 py-3">{lead.location}</td>
+              <td className="px-4 py-3 space-x-2">
+                <button className="px-2 py-1 text-xs bg-blue-100 text-blue-600 rounded-md hover:bg-blue-200">
+                  Edit
+                </button>
+                <button className="px-2 py-1 text-xs bg-red-100 text-red-600 rounded-md hover:bg-red-200">
+                  Delete
+                </button>
+              </td>
+            </tr>
+          ))}
+        </tbody>
+      </table>
+    </div>
   );
 };
 
