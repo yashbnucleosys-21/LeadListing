@@ -75,8 +75,7 @@ const LeadTable = ({ leads, onViewLead, onEditLead, onCallLead }: LeadTableProps
                     {lead.followUpTime ? (
                       <div className="flex items-center gap-1 text-sm">
                         <Clock className="h-3 w-3" />
-                        {/* ✅ UPDATED: Ensure followUpTime is parsed correctly as a time string */}
-                        {lead.followUpTime} 
+                        {lead.followUpTime}
                       </div>
                     ) : (
                       <span className="text-gray-400">-</span>
@@ -86,7 +85,7 @@ const LeadTable = ({ leads, onViewLead, onEditLead, onCallLead }: LeadTableProps
                     {lead.nextFollowUpDate ? (
                       <div className="flex items-center gap-1 text-sm">
                         <Calendar className="h-3 w-3" />
-                        {new Date(lead.nextFollowUpDate).toLocaleDateString()}
+                        {lead.nextFollowUpDate}
                       </div>
                     ) : (
                       <span className="text-gray-400">-</span>
