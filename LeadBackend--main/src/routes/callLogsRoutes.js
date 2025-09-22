@@ -1,8 +1,9 @@
 import express from 'express';
-import { createCallLog } from '../controllers/callLogController.js';
+import { createCallLog, getCallLogs } from '../controllers/callLogController.js';
 
 const router = express.Router();
 
 router.post('/', createCallLog);
+router.get('/', getCallLogs);
 
 export default router;
