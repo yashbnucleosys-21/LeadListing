@@ -13,39 +13,39 @@ interface LeadTableProps {
 }
 
 const LeadTable = ({ leads, onViewLead, onEditLead, onCallLead }: LeadTableProps) => {
+
   return (
     <Card>
       <CardContent className="p-0">
-        {/* ✅ Added responsive wrapper */}
-        <div className="w-full overflow-x-auto">
+        <div className="flex justify-center">
           <table className="w-full min-w-[1200px] bg-white">
-            <thead className="bg-gray-50 border-b sticky top-0 z-10">
+            <thead className="bg-gray-50 border-b">
               <tr>
-                <th className="text-left p-4 font-medium">Lead Name</th>
-                <th className="text-left p-4 font-medium">Company</th>
-                <th className="text-left p-4 font-medium">Contact</th>
-                <th className="text-left p-4 font-medium">Status</th>
-                <th className="text-left p-4 font-medium">Priority</th>
-                <th className="text-left p-4 font-medium">Assignee</th>
-                <th className="text-left p-4 font-medium">Lead Source</th>
-                <th className="text-left p-4 font-medium">Follow-Up Time</th>
-                <th className="text-left p-4 font-medium">Next Follow-up</th>
-                <th className="text-left p-4 font-medium">Service</th>
-                <th className="text-left p-4 font-medium">Location</th>
-                <th className="text-left p-4 font-medium">Actions</th>
+                <th className="text-left p-4 font-medium bg-white">Lead Name</th>
+                <th className="text-left p-4 font-medium bg-white">Company</th>
+                <th className="text-left p-4 font-medium bg-white">Contact</th>
+                <th className="text-left p-4 font-medium bg-white">Status</th>
+                <th className="text-left p-4 font-medium bg-white">Priority</th>
+                <th className="text-left p-4 font-medium bg-white">Assignee</th>
+                <th className="text-left p-4 font-medium bg-white">Lead Source</th>
+                <th className="text-left p-4 font-medium bg-white">Follow-Up Time</th>
+                <th className="text-left p-4 font-medium bg-white">Next Follow-up</th>
+                <th className="text-left p-4 font-medium bg-white">Service</th>
+                <th className="text-left p-4 font-medium bg-white">Location</th> {/* Added Location Header */}
+                <th className="text-left p-4 font-medium bg-white">Actions</th>
               </tr>
             </thead>
             <tbody>
               {leads.map((lead) => (
-                <tr key={lead.id} className="border-b hover:bg-gray-50">
-                  <td className="p-4 text-sm font-medium">{lead.leadName}</td>
-                  <td className="p-4">
+                <tr key={lead.id} className="border-b hover:bg-gray-50 bg-white">
+                  <td className="p-4 text-sm font-medium bg-white">{lead.leadName}</td>
+                  <td className="p-4 bg-white">
                     <div>
                       <div className="font-medium">{lead.companyName}</div>
                       <div className="text-sm text-gray-500">{lead.contactPerson}</div>
                     </div>
                   </td>
-                  <td className="p-4">
+                  <td className="p-4 bg-white">
                     <div className="space-y-1">
                       <div className="flex items-center gap-1 text-sm">
                         <Mail className="h-3 w-3" />
@@ -57,47 +57,50 @@ const LeadTable = ({ leads, onViewLead, onEditLead, onCallLead }: LeadTableProps
                       </div>
                     </div>
                   </td>
-                  <td className="p-4">
+                  <td className="p-4 bg-white">
                     <Badge className={`${getStatusColor(lead.status)}`}>
                       {lead.status}
                     </Badge>
                   </td>
-                  <td className="p-4">
+                  <td className="p-4 bg-white">
                     <Badge className={`${getPriorityColor(lead.priority)}`}>
                       {lead.priority}
                     </Badge>
                   </td>
-                  <td className="p-4 text-sm">{lead.assignee}</td>
-                  <td className="p-4 text-sm">
+                  <td className="p-4 text-sm bg-white">{lead.assignee}</td>
+                  <td className="p-4 text-sm bg-white">
                     {lead.leadSource || <span className="text-gray-400">-</span>}
                   </td>
-                  <td className="p-4 text-sm">
+                  <td className="p-4 text-sm bg-white">
                     {lead.followUpTime ? (
                       <div className="flex items-center gap-1 text-sm">
                         <Clock className="h-3 w-3" />
-                        {lead.followUpTime}
+                        {/* ✅ UPDATED: Ensure followUpTime is parsed correctly as a time string */}
+                        {lead.followUpTime} 
                       </div>
                     ) : (
                       <span className="text-gray-400">-</span>
                     )}
                   </td>
-                  <td className="p-4">
+                  <td className="p-4 bg-white">
                     {lead.nextFollowUpDate ? (
                       <div className="flex items-center gap-1 text-sm">
                         <Calendar className="h-3 w-3" />
-                        {lead.nextFollowUpDate}
+                        {new Date(lead.nextFollowUpDate).toLocaleDateString()}
                       </div>
                     ) : (
                       <span className="text-gray-400">-</span>
                     )}
                   </td>
-                  <td className="p-4 text-sm">
-                    {lead.service || <span className="text-gray-400">-</span>}
+                  <td className="p-4 text-sm bg-white">
+                   {lead.service || <span className="text-gray-400">-</span>}
                   </td>
-                  <td className="p-4 text-sm">
+                   {/* Added Location Data */}
+                   <td className="p-4 text-sm bg-white">
                     {lead.location || <span className="text-gray-400">-</span>}
-                  </td>
-                  <td className="p-4">
+                   </td>
+
+                  <td className="p-4 bg-white">
                     <div className="flex gap-2">
                       <Button size="sm" variant="outline" onClick={() => onViewLead(lead)}>
                         <Eye className="h-3 w-3" />
