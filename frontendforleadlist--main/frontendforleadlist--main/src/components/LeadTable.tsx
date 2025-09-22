@@ -18,7 +18,7 @@ const LeadTable = ({ leads, onViewLead, onEditLead, onCallLead }: LeadTableProps
       <CardContent className="p-0">
         {/* ✅ Added responsive wrapper */}
         <div className="w-full overflow-x-auto">
-          <table className="w-full border-collapse">
+          <table className="w-full min-w-[1200px] bg-white">
             <thead className="bg-gray-50 border-b sticky top-0 z-10">
               <tr>
                 <th className="text-left p-4 font-medium">Lead Name</th>
