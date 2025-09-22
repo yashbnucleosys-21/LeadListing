@@ -17,6 +17,9 @@ interface Lead {
   status: string;
   priority: string;
   assignee?: string;
+  nextFollowUpDate?: string; // "YYYY-MM-DD"
+  followUpTime?: string;      // "10:00 AM"
+  followUpType?: string;      // "Call" | "Email" etc.
 }
 
 interface FollowUp {
@@ -31,6 +34,7 @@ interface FollowUp {
 
 // ✅ Helper: check if date is today
 const isToday = (dateStr: string) => {
+  if (!dateStr) return false;
   const date = new Date(dateStr);
   const today = new Date();
   return date.toDateString() === today.toDateString();
@@ -86,18 +90,20 @@ const Dashboard = () => {
 
         setRecentLeads(leads.slice(-5).reverse());
 
-        // ✅ Dynamically create follow-ups from leads
-        const followUps: FollowUp[] = leads.map(l => ({
-          id: l.id,
-          lead: l.companyName,
-          time: "10:00 AM",
-          type: "Call",
-          assignee: l.assignee || "Unassigned",
-          scheduledDate: new Date().toISOString(),
-          status: "pending",
-        }));
+        // ✅ Filter only today's follow-ups
+        const todayFUs: FollowUp[] = leads
+          .filter(l => l.nextFollowUpDate && isToday(l.nextFollowUpDate))
+          .map(l => ({
+            id: l.id,
+            lead: l.companyName,
+            time: l.followUpTime || "N/A",
+            type: l.followUpType || "Call",
+            assignee: l.assignee || "Unassigned",
+            scheduledDate: l.nextFollowUpDate!,
+            status: "pending",
+          }));
 
-        setTodayFollowUps(followUps.filter(f => isToday(f.scheduledDate)));
+        setTodayFollowUps(todayFUs);
 
         const totalLeads = leads.length;
         const newLeads = leads.filter(l => l.status === "new").length;
@@ -109,7 +115,7 @@ const Dashboard = () => {
         setStats({
           totalLeads,
           newLeads,
-          todayFollowUps: followUps.filter(f => isToday(f.scheduledDate)).length,
+          todayFollowUps: todayFUs.length,
           activeCalls,
           conversionRate,
         });
