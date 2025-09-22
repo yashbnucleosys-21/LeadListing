@@ -21,12 +21,22 @@ export const createLead = async (req, res) => {
 export const getAllLeads = async (req, res) => {
   try {
     const leads = await LeadServices.getAllLeads();
-    res.status(200).json(leads);
+
+    // Ensure we always return an array (flatten if needed)
+    let leadsArray = [];
+    if (Array.isArray(leads)) {
+      leadsArray = leads;
+    } else if (leads?.data && Array.isArray(leads.data)) {
+      leadsArray = leads.data;
+    }
+
+    res.status(200).json(leadsArray);
   } catch (error) {
     console.error('Error fetching leads:', error);
     res.status(500).json({ message: 'Server error while fetching leads' });
   }
 };
+
 
 // Update a Lead
 export const updateLead = async (req, res) => {
