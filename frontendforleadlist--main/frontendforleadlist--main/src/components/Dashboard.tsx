@@ -25,7 +25,16 @@ interface FollowUp {
   time: string;
   type: string;
   assignee: string;
+  scheduledDate: string;
+  status: string;
 }
+
+// ✅ Helper: check if date is today
+const isToday = (dateStr: string) => {
+  const date = new Date(dateStr);
+  const today = new Date();
+  return date.toDateString() === today.toDateString();
+};
 
 const Dashboard = () => {
   const [stats, setStats] = useState({
@@ -38,7 +47,6 @@ const Dashboard = () => {
   const [recentLeads, setRecentLeads] = useState<Lead[]>([]);
   const [todayFollowUps, setTodayFollowUps] = useState<FollowUp[]>([]);
 
-  // Status color helper
   const getStatusColor = (status: string) => {
     switch (status) {
       case "new": return "bg-blue-100 text-blue-800";
@@ -49,7 +57,6 @@ const Dashboard = () => {
     }
   };
 
-  // Priority color helper
   const getPriorityColor = (priority: string) => {
     switch (priority) {
       case "high": return "bg-red-100 text-red-800";
@@ -59,24 +66,39 @@ const Dashboard = () => {
     }
   };
 
+  // ✅ Mark follow-up as completed
+  const markAsCompleted = (id: number) => {
+    setTodayFollowUps(prev =>
+      prev.map(f => (f.id === id ? { ...f, status: "completed" } : f))
+    );
+  };
+
   useEffect(() => {
     const fetchData = async () => {
       try {
-        // ✅ Use .env API URL
         const apiUrl = import.meta.env.VITE_API_URL || "http://localhost:5000/api";
 
         const leadsRes = await fetch(`${apiUrl}/leads`);
         const leadsData = await leadsRes.json();
-
-        // Ensure we always have an array
         const leads: Lead[] = Array.isArray(leadsData)
           ? leadsData
           : leadsData?.data || [];
 
-        // Recent leads (latest 5)
         setRecentLeads(leads.slice(-5).reverse());
 
-        // Calculate stats dynamically
+        // ✅ Dynamically create follow-ups from leads
+        const followUps: FollowUp[] = leads.map(l => ({
+          id: l.id,
+          lead: l.companyName,
+          time: "10:00 AM",
+          type: "Call",
+          assignee: l.assignee || "Unassigned",
+          scheduledDate: new Date().toISOString(),
+          status: "pending",
+        }));
+
+        setTodayFollowUps(followUps.filter(f => isToday(f.scheduledDate)));
+
         const totalLeads = leads.length;
         const newLeads = leads.filter(l => l.status === "new").length;
         const activeCalls = leads.filter(l => l.status === "contacted").length;
@@ -87,16 +109,10 @@ const Dashboard = () => {
         setStats({
           totalLeads,
           newLeads,
-          todayFollowUps: todayFollowUps.length, // Replace later if API ready
+          todayFollowUps: followUps.filter(f => isToday(f.scheduledDate)).length,
           activeCalls,
           conversionRate,
         });
-
-        // ✅ Mock follow-ups (replace with API later)
-        setTodayFollowUps([
-          { id: 1, lead: "Acme Corp", time: "10:00 AM", type: "Call", assignee: "Rahul Sharma" },
-          { id: 2, lead: "Tech Solutions", time: "2:00 PM", type: "Email", assignee: "Priya Patel" },
-        ]);
       } catch (error) {
         console.error("Error fetching dashboard data:", error);
       }
@@ -210,12 +226,15 @@ const Dashboard = () => {
                   </div>
                   <div className="flex gap-2 items-center">
                     <Badge variant="outline">{f.time}</Badge>
-                    <Button size="sm" variant="outline">
+                    <Button size="sm" variant="outline" onClick={() => markAsCompleted(f.id)}>
                       <CheckCircle className="h-3 w-3 mr-1" /> Mark Done
                     </Button>
                   </div>
                 </div>
               ))}
+              {todayFollowUps.length === 0 && (
+                <p className="text-gray-500 text-sm">No follow-ups for today.</p>
+              )}
             </div>
           </CardContent>
         </Card>
