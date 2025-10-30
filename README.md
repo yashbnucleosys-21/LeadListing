@@ -116,22 +116,22 @@ npm run dev
 
 ## 📂 Project Structure
 
-LeadListing/
-├── backend/
-│   ├── src/
-│   │   ├── routes/        # API route definitions
-│   │   ├── controllers/   # Request handlers
-│   │   ├── models/        # Database models
-│   │   └── utils/         # Utility functions
-│   ├── server.js           # Express server entry point
-│   └── package.json
-└── frontend/
-    ├── src/
-    │   ├── pages/          # Dashboard, Leads, Users, Roles, etc.
-    │   ├── components/     # Shared UI components (tables, forms, buttons)
-    │   ├── App.jsx
-    │   └── App.css
-    └── package.json
+    LeadListing/
+    ├── backend/
+    │   ├── src/
+    │   │   ├── routes/        # API route definitions
+    │   │   ├── controllers/   # Request handlers
+    │   │   ├── models/        # Database models
+    │   │   └── utils/         # Utility functions
+    │   ├── server.js           # Express server entry point
+    │   └── package.json
+    └── frontend/
+        ├── src/
+        │   ├── pages/          # Dashboard, Leads, Users, Roles, etc.
+        │   ├── components/     # Shared UI components (tables, forms, buttons)
+        │   ├── App.jsx
+        │   └── App.css
+        └── package.json
 
 ---
 
