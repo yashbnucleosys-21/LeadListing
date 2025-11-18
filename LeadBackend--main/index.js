@@ -16,17 +16,15 @@ dotenv.config();
 const app = express();
 const PORT = process.env.PORT || 5000;
 
-// Define allowed origins here
+// Configure CORS options
 const allowedOrigins = [
-  "http://localhost:8081",   // frontend dev
-  "http://10.126.217.232:8081", // Ensure no trailing slash if your frontend doesn't send it
+  process.env.FRONTEND_URL, // Vercel frontend
+  "http://localhost:5173",   // frontend dev
 ];
 
-// Configure CORS options
+
 const corsOptions = {
   origin: (origin, callback) => {
-    // Allow requests with no origin (like mobile apps or curl requests)
-    // or from an allowed origin
     if (!origin || allowedOrigins.includes(origin)) {
       callback(null, true);
     } else {
@@ -36,8 +34,8 @@ const corsOptions = {
   credentials: true,
 };
 
-// Use the configured CORS options
 app.use(cors(corsOptions));
+
 
 // Middleware
 app.use(express.json()); 
