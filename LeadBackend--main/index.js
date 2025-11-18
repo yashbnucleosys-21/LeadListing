@@ -19,8 +19,10 @@ const PORT = process.env.PORT || 5000;
 // Configure CORS options
 const allowedOrigins = [
   process.env.FRONTEND_URL, // Vercel frontend
-  "http://localhost:5173",   // frontend dev
+  "http://localhost:5173",
+  "http://localhost:8081",
 ];
+
 
 
 const corsOptions = {

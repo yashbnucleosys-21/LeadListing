@@ -73,3 +73,26 @@ export const getLeadById = async (req, res) => {
 };
 
 
+// backend/src/controllers/leadController.js
+
+export const addFollowUpHistory = async (req, res) => {
+  try {
+    const leadId = parseInt(req.params.id);
+    const { description, notes, status, priority } = req.body;
+
+    // Assume you have a FollowUpHistory model
+    const newHistory = await FollowUpHistory.create({
+      leadId,
+      description,
+      notes,
+      status,
+      priority,
+      createdAt: new Date(),
+    });
+
+    res.status(201).json(newHistory);
+  } catch (err) {
+    console.error("Error adding follow-up history:", err);
+    res.status(500).json({ message: "Failed to add follow-up history." });
+  }
+};

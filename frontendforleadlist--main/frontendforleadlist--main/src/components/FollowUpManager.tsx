@@ -8,7 +8,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger, Dialog
 import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Textarea } from '@/components/ui/textarea';
-import { Plus, Search, Calendar, Clock, CheckCircle, AlertTriangle, Bell, Phone, Mail, Video, Eye, Edit, History } from 'lucide-react';
+import { Plus, Search, Calendar, Clock, CheckCircle, AlertTriangle, Bell, Phone, Mail, Video, Eye, Edit, History, Trash } from 'lucide-react';
 import { getAllLeads } from '@/api/leadApi';
 import { getUsers, User as BackendUser } from '@/api/userApi';
 
@@ -77,7 +77,7 @@ const FollowUpManager: React.FC = () => {
   const [filterAssignee, setFilterAssignee] = useState('all');
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-  
+
   const [selectedFollowUp, setSelectedFollowUp] = useState<FollowUp | null>(null);
   const [editFollowUp, setEditFollowUp] = useState<FollowUp | null>(null);
   const [historyFollowUp, setHistoryFollowUp] = useState<FollowUp | null>(null);
@@ -132,16 +132,16 @@ const FollowUpManager: React.FC = () => {
           let currentStatus: FollowUp['status'] = apiLead.status; // Start with API status, then potentially update
           const scheduledDate = apiLead.nextFollowUpDate ? new Date(apiLead.nextFollowUpDate).toISOString().split('T')[0] : '';
           const today = new Date();
-          today.setHours(0,0,0,0); // Normalize today for comparison
+          today.setHours(0, 0, 0, 0); // Normalize today for comparison
 
           // Logic to determine if a 'pending' follow-up is 'overdue'
           if (scheduledDate) { // Only check if a scheduledDate exists
-              const followUpDate = new Date(scheduledDate);
-              followUpDate.setHours(0,0,0,0); // Normalize followUpDate for comparison
+            const followUpDate = new Date(scheduledDate);
+            followUpDate.setHours(0, 0, 0, 0); // Normalize followUpDate for comparison
 
-              if (currentStatus === 'pending' && followUpDate < today) {
-                  currentStatus = 'overdue';
-              }
+            if (currentStatus === 'pending' && followUpDate < today) {
+              currentStatus = 'overdue';
+            }
           }
 
 
@@ -249,47 +249,47 @@ const FollowUpManager: React.FC = () => {
         service: newFollowUp.description,
         location: selectedLeadForNewFollowUp.location,
       };
-      
+
       await axios.put(`${API_BASE_URL}/leads/${selectedLeadForNewFollowUp.id}`, payload);
-      
+
       const response = await axios.get<ApiLeadResponse[]>(`${API_BASE_URL}/leads`);
       const updatedLeadsData = Array.isArray(response.data) ? response.data : [];
 
       const mappedFollowUps: FollowUp[] = updatedLeadsData.map((apiLead) => {
-          let currentStatus: FollowUp['status'] = apiLead.status;
-          const scheduledDate = apiLead.nextFollowUpDate ? new Date(apiLead.nextFollowUpDate).toISOString().split('T')[0] : '';
-          const today = new Date();
-          today.setHours(0,0,0,0);
+        let currentStatus: FollowUp['status'] = apiLead.status;
+        const scheduledDate = apiLead.nextFollowUpDate ? new Date(apiLead.nextFollowUpDate).toISOString().split('T')[0] : '';
+        const today = new Date();
+        today.setHours(0, 0, 0, 0);
 
-          if (scheduledDate) {
-              const followUpDate = new Date(scheduledDate);
-              followUpDate.setHours(0,0,0,0);
-              if (currentStatus === 'pending' && followUpDate < today) {
-                  currentStatus = 'overdue';
-              }
+        if (scheduledDate) {
+          const followUpDate = new Date(scheduledDate);
+          followUpDate.setHours(0, 0, 0, 0);
+          if (currentStatus === 'pending' && followUpDate < today) {
+            currentStatus = 'overdue';
           }
+        }
 
-          let followUpType = 'call';
-          const serviceLower = apiLead.service.toLowerCase();
-          if (serviceLower.includes('email')) followUpType = 'email';
-          else if (serviceLower.includes('meeting')) followUpType = 'meeting';
-          else if (serviceLower.includes('demo')) followUpType = 'demo';
+        let followUpType = 'call';
+        const serviceLower = apiLead.service.toLowerCase();
+        if (serviceLower.includes('email')) followUpType = 'email';
+        else if (serviceLower.includes('meeting')) followUpType = 'meeting';
+        else if (serviceLower.includes('demo')) followUpType = 'demo';
 
-          return {
-            id: apiLead.id,
-            leadId: apiLead.id,
-            leadName: apiLead.companyName || 'Unknown Lead',
-            assignee: apiLead.assignee || 'Unassigned',
-            type: followUpType,
-            priority: apiLead.priority || 'medium',
-            status: currentStatus,
-            scheduledDate: scheduledDate,
-            scheduledTime: apiLead.followUpTime || '',
-            description: apiLead.service || 'General Follow-up',
-            notes: apiLead.notes || '',
-            createdDate: apiLead.nextFollowUpDate ? new Date(apiLead.nextFollowUpDate).toISOString().split('T')[0] : new Date().toISOString().split('T')[0],
-            updatedAt: apiLead.nextFollowUpDate ? new Date(apiLead.nextFollowUpDate) : new Date(),
-          };
+        return {
+          id: apiLead.id,
+          leadId: apiLead.id,
+          leadName: apiLead.companyName || 'Unknown Lead',
+          assignee: apiLead.assignee || 'Unassigned',
+          type: followUpType,
+          priority: apiLead.priority || 'medium',
+          status: currentStatus,
+          scheduledDate: scheduledDate,
+          scheduledTime: apiLead.followUpTime || '',
+          description: apiLead.service || 'General Follow-up',
+          notes: apiLead.notes || '',
+          createdDate: apiLead.nextFollowUpDate ? new Date(apiLead.nextFollowUpDate).toISOString().split('T')[0] : new Date().toISOString().split('T')[0],
+          updatedAt: apiLead.nextFollowUpDate ? new Date(apiLead.nextFollowUpDate) : new Date(),
+        };
       });
 
       setFollowUps(mappedFollowUps);
@@ -304,70 +304,99 @@ const FollowUpManager: React.FC = () => {
     }
   };
 
+  const handleDeleteFollowUp = async (followUpId: number) => {
+    const followUpToDelete = followUps.find(f => f.id === followUpId);
+    if (!followUpToDelete) return;
+
+    if (!window.confirm(`Are you sure you want to delete follow-up for "${followUpToDelete.leadName}"?`)) return;
+
+    try {
+      // 1️⃣ Delete follow-up
+      await axios.delete(`${API_BASE_URL}/leads/${followUpToDelete.leadId}`);
+
+      // 2️⃣ Log deletion in history
+      await axios.post(`${API_BASE_URL}/leads/${followUpToDelete.leadId}/history`, {
+        description: 'Follow-up deleted',
+        notes: `Follow-up for ${followUpToDelete.leadName} was deleted.`,
+        status: followUpToDelete.status,
+        priority: followUpToDelete.priority,
+        leadId: followUpToDelete.leadId,
+      });
+
+      // 3️⃣ Remove from frontend state
+      setFollowUps(prev => prev.filter(f => f.id !== followUpId));
+    } catch (err) {
+      setError('Failed to delete follow-up or log history.');
+      console.error(err);
+    }
+  };
+
+
+
 
   const handleEditFollowUp = async () => {
     if (!editFollowUp) return;
     try {
-        const apiPayload = {
-            leadName: editFollowUp.leadName,
-            companyName: editFollowUp.leadName,
-            contactPerson: editFollowUp.leadName,
-            status: editFollowUp.status,
-            priority: editFollowUp.priority,
-            assignee: editFollowUp.assignee,
-            service: editFollowUp.description,
-            nextFollowUpDate: editFollowUp.scheduledDate,
-            followUpTime: editFollowUp.scheduledTime,
-            notes: editFollowUp.notes,
+      const apiPayload = {
+        leadName: editFollowUp.leadName,
+        companyName: editFollowUp.leadName,
+        contactPerson: editFollowUp.leadName,
+        status: editFollowUp.status,
+        priority: editFollowUp.priority,
+        assignee: editFollowUp.assignee,
+        service: editFollowUp.description,
+        nextFollowUpDate: editFollowUp.scheduledDate,
+        followUpTime: editFollowUp.scheduledTime,
+        notes: editFollowUp.notes,
+      };
+      const url = `${API_BASE_URL}/leads/${editFollowUp.leadId}`;
+      await axios.put(url, apiPayload);
+
+      setFollowUps(prev => prev.map(f => (f.id === editFollowUp.id) ? { ...f, ...editFollowUp } : f));
+
+      const response = await axios.get<ApiLeadResponse[]>(`${API_BASE_URL}/leads`);
+      const updatedLeadsData = Array.isArray(response.data) ? response.data : [];
+
+      const mappedFollowUps: FollowUp[] = updatedLeadsData.map((apiLead) => {
+        let currentStatus: FollowUp['status'] = apiLead.status;
+        const scheduledDate = apiLead.nextFollowUpDate ? new Date(apiLead.nextFollowUpDate).toISOString().split('T')[0] : '';
+        const today = new Date();
+        today.setHours(0, 0, 0, 0);
+
+        if (scheduledDate) {
+          const followUpDate = new Date(scheduledDate);
+          followUpDate.setHours(0, 0, 0, 0);
+          if (currentStatus === 'pending' && followUpDate < today) {
+            currentStatus = 'overdue';
+          }
+        }
+        let followUpType = 'call';
+        const serviceLower = apiLead.service.toLowerCase();
+        if (serviceLower.includes('email')) followUpType = 'email';
+        else if (serviceLower.includes('meeting')) followUpType = 'meeting';
+        else if (serviceLower.includes('demo')) followUpType = 'demo';
+
+        return {
+          id: apiLead.id,
+          leadId: apiLead.id,
+          leadName: apiLead.companyName || 'Unknown Lead',
+          assignee: apiLead.assignee || 'Unassigned',
+          type: followUpType,
+          priority: apiLead.priority || 'medium',
+          status: currentStatus,
+          scheduledDate: scheduledDate,
+          scheduledTime: apiLead.followUpTime || '',
+          description: apiLead.service || 'General Follow-up',
+          notes: apiLead.notes || '',
+          createdDate: apiLead.nextFollowUpDate ? new Date(apiLead.nextFollowUpDate).toISOString().split('T')[0] : new Date().toISOString().split('T')[0],
+          updatedAt: apiLead.nextFollowUpDate ? new Date(apiLead.nextFollowUpDate) : new Date(),
         };
-        const url = `${API_BASE_URL}/leads/${editFollowUp.leadId}`;
-        await axios.put(url, apiPayload);
-        
-        setFollowUps(prev => prev.map(f => (f.id === editFollowUp.id) ? { ...f, ...editFollowUp } : f));
+      });
 
-        const response = await axios.get<ApiLeadResponse[]>(`${API_BASE_URL}/leads`);
-        const updatedLeadsData = Array.isArray(response.data) ? response.data : [];
-
-        const mappedFollowUps: FollowUp[] = updatedLeadsData.map((apiLead) => {
-            let currentStatus: FollowUp['status'] = apiLead.status;
-            const scheduledDate = apiLead.nextFollowUpDate ? new Date(apiLead.nextFollowUpDate).toISOString().split('T')[0] : '';
-            const today = new Date();
-            today.setHours(0,0,0,0);
-
-            if (scheduledDate) {
-                const followUpDate = new Date(scheduledDate);
-                followUpDate.setHours(0,0,0,0);
-                if (currentStatus === 'pending' && followUpDate < today) {
-                    currentStatus = 'overdue';
-                }
-            }
-            let followUpType = 'call';
-            const serviceLower = apiLead.service.toLowerCase();
-            if (serviceLower.includes('email')) followUpType = 'email';
-            else if (serviceLower.includes('meeting')) followUpType = 'meeting';
-            else if (serviceLower.includes('demo')) followUpType = 'demo';
-            
-            return {
-                id: apiLead.id,
-                leadId: apiLead.id,
-                leadName: apiLead.companyName || 'Unknown Lead',
-                assignee: apiLead.assignee || 'Unassigned',
-                type: followUpType,
-                priority: apiLead.priority || 'medium',
-                status: currentStatus,
-                scheduledDate: scheduledDate,
-                scheduledTime: apiLead.followUpTime || '',
-                description: apiLead.service || 'General Follow-up',
-                notes: apiLead.notes || '',
-                createdDate: apiLead.nextFollowUpDate ? new Date(apiLead.nextFollowUpDate).toISOString().split('T')[0] : new Date().toISOString().split('T')[0],
-                updatedAt: apiLead.nextFollowUpDate ? new Date(apiLead.nextFollowUpDate) : new Date(),
-            };
-        });
-
-        setFollowUps(mappedFollowUps);
-        setEditFollowUp(null);
+      setFollowUps(mappedFollowUps);
+      setEditFollowUp(null);
     } catch (err: any) {
-        setError(`Failed to update follow-up: ${err.message || 'Unknown error'}`);
+      setError(`Failed to update follow-up: ${err.message || 'Unknown error'}`);
     }
   };
 
@@ -375,10 +404,10 @@ const FollowUpManager: React.FC = () => {
     const followUpToUpdate = followUps.find((f) => f.id === id);
     if (!followUpToUpdate) return;
     try {
-        await axios.put(`${API_BASE_URL}/leads/${followUpToUpdate.leadId}`, { ...followUpToUpdate, status: 'completed' }); 
-        setFollowUps(prev => prev.map(f => f.id === id ? { ...f, status: 'completed', completedDate: new Date().toISOString().split('T')[0] } : f));
+      await axios.put(`${API_BASE_URL}/leads/${followUpToUpdate.leadId}`, { ...followUpToUpdate, status: 'completed' });
+      setFollowUps(prev => prev.map(f => f.id === id ? { ...f, status: 'completed', completedDate: new Date().toISOString().split('T')[0] } : f));
     } catch (err) {
-        setError('Failed to update follow-up status.');
+      setError('Failed to update follow-up status.');
     }
   };
 
@@ -504,10 +533,11 @@ const FollowUpManager: React.FC = () => {
                     <td className="p-4"><Badge className={`${getPriorityColor(followUp.priority)}`}>{followUp.priority}</Badge></td>
                     <td className="p-4"><Badge className={`${getStatusColor(followUp.status)}`}>{followUp.status}</Badge></td>
                     <td className="p-4"><div className="flex gap-2">
-                        {followUp.status === 'pending' && (<Button size="sm" variant="outline" onClick={() => markAsCompleted(followUp.id)} className="text-green-600 hover:text-green-700"><CheckCircle className="h-3 w-3 mr-1" /> Complete</Button>)}
-                        <Button size="sm" variant="outline" onClick={() => setSelectedFollowUp(followUp)} className="text-blue-600 hover:text-blue-700"><Eye className="h-3 w-3 mr-1" /> View</Button>
-                        <Button size="sm" variant="outline" onClick={() => setEditFollowUp(followUp)} className="text-blue-600 hover:text-blue-700"><Edit className="h-3 w-3 mr-1" /> Edit</Button>
-                        <Button size="sm" variant="outline" onClick={() => setHistoryFollowUp(followUp)} className="text-blue-600 hover:text-blue-700"><History className="h-3 w-3 mr-1" /> History</Button>
+                      {followUp.status === 'pending' && (<Button size="sm" variant="outline" onClick={() => markAsCompleted(followUp.id)} className="text-green-600 hover:text-green-700"><CheckCircle className="h-3 w-3 mr-1" /> Complete</Button>)}
+                      <Button size="sm" variant="outline" onClick={() => setSelectedFollowUp(followUp)} className="text-blue-600 hover:text-blue-700"><Eye className="h-3 w-3 mr-1" /> View</Button>
+                      <Button size="sm" variant="outline" onClick={() => setEditFollowUp(followUp)} className="text-blue-600 hover:text-blue-700"><Edit className="h-3 w-3 mr-1" /> Edit</Button>
+                      <Button size="sm" variant="outline" onClick={() => setHistoryFollowUp(followUp)} className="text-blue-600 hover:text-blue-700"><History className="h-3 w-3 mr-1" /> History</Button>
+                      <Button size="sm" variant="outline" onClick={() => handleDeleteFollowUp(followUp.id)} className="text-blue-600 hover:text-blue-700"><Trash className="h-3 w-3 mr-1" /> Delete</Button>
                     </div></td>
                   </tr>
                 ))}
@@ -516,60 +546,60 @@ const FollowUpManager: React.FC = () => {
           </div>
         </CardContent>
       </Card>
-      
+
       {/* DIALOGS */}
       <Dialog open={!!selectedFollowUp} onOpenChange={() => setSelectedFollowUp(null)}>
         <DialogContent className="max-w-2xl"><DialogHeader><DialogTitle>Lead Details</DialogTitle></DialogHeader>{selectedFollowUp && (<div className="grid grid-cols-2 gap-4 py-4"><div><Label>Lead/Company Name</Label><Input value={selectedFollowUp.leadName} readOnly /></div><div><Label>Assignee</Label><Input value={selectedFollowUp.assignee} readOnly /></div><div><Label>Type</Label><Input value={selectedFollowUp.type} readOnly /></div><div><Label>Priority</Label><Input value={selectedFollowUp.priority} readOnly /></div><div><Label>Status</Label><Input value={selectedFollowUp.status} readOnly /></div><div><Label>Scheduled Date</Label><Input value={selectedFollowUp.scheduledDate} readOnly /></div><div className="col-span-2"><Label>Description</Label><Textarea value={selectedFollowUp.description} readOnly /></div><div className="col-span-2"><Label>Notes</Label><Textarea value={selectedFollowUp.notes} readOnly /></div></div>)}</DialogContent>
       </Dialog>
-      
+
       <Dialog open={!!editFollowUp} onOpenChange={() => setEditFollowUp(null)}>
         <DialogContent className="max-w-2xl"><DialogHeader><DialogTitle>Edit Follow-up</DialogTitle></DialogHeader>{editFollowUp && (<div><div className="grid grid-cols-2 gap-4 py-4">
-            <div className="space-y-2"><Label htmlFor="editLeadName">Lead/Company Name</Label><Input id="editLeadName" value={editFollowUp.leadName} onChange={(e) => setEditFollowUp({ ...editFollowUp, leadName: e.target.value })}/></div>
-            <div className="space-y-2"><Label htmlFor="editAssignee">Assign to</Label><Select value={editFollowUp.assignee} onValueChange={(value) => setEditFollowUp({ ...editFollowUp, assignee: value })}><SelectTrigger><SelectValue/></SelectTrigger><SelectContent>{assignees.map((a) => <SelectItem key={a} value={a}>{a}</SelectItem>)}</SelectContent></Select></div>
-            
-            <div className="space-y-2">
-                <Label htmlFor="editStatus">Status</Label>
-                <Select value={editFollowUp.status} onValueChange={(value) => setEditFollowUp({ ...editFollowUp, status: value })}>
-                    <SelectTrigger id="editStatus"><SelectValue placeholder="Select status" /></SelectTrigger>
-                    <SelectContent>
-                      {statuses.map((status) => (
-                        <SelectItem key={status} value={status}>
-                          {status.charAt(0).toUpperCase() + status.slice(1)}
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                </Select>
-            </div>
-            
-            <div className="space-y-2"><Label htmlFor="editPriority">Priority</Label><Select value={editFollowUp.priority} onValueChange={(value) => setEditFollowUp({ ...editFollowUp, priority: value as any })}><SelectTrigger><SelectValue/></SelectTrigger><SelectContent>{priorities.map((p) => <SelectItem key={p} value={p}>{p.charAt(0).toUpperCase() + p.slice(1)}</SelectItem>)}</SelectContent></Select></div>
+          <div className="space-y-2"><Label htmlFor="editLeadName">Lead/Company Name</Label><Input id="editLeadName" value={editFollowUp.leadName} onChange={(e) => setEditFollowUp({ ...editFollowUp, leadName: e.target.value })} /></div>
+          <div className="space-y-2"><Label htmlFor="editAssignee">Assign to</Label><Select value={editFollowUp.assignee} onValueChange={(value) => setEditFollowUp({ ...editFollowUp, assignee: value })}><SelectTrigger><SelectValue /></SelectTrigger><SelectContent>{assignees.map((a) => <SelectItem key={a} value={a}>{a}</SelectItem>)}</SelectContent></Select></div>
 
-            <div className="space-y-2"><Label htmlFor="editDescription">Description</Label><Input id="editDescription" value={editFollowUp.description} onChange={(e) => setEditFollowUp({ ...editFollowUp, description: e.target.value })}/></div>
-            <div className="space-y-2"><Label htmlFor="editScheduledDate">Scheduled Date</Label><Input id="editScheduledDate" type="date" value={editFollowUp.scheduledDate} onChange={(e) => setEditFollowUp({ ...editFollowUp, scheduledDate: e.target.value })}/></div>
-            <div className="space-y-2"><Label htmlFor="editScheduledTime">Scheduled Time</Label><Input id="editScheduledTime" type="time" value={editFollowUp.scheduledTime} onChange={(e) => setEditFollowUp({ ...editFollowUp, scheduledTime: e.target.value })}/></div>
-            <div className="col-span-2 space-y-2"><Label htmlFor="editNotes">Notes</Label><Textarea id="editNotes" value={editFollowUp.notes} onChange={(e) => setEditFollowUp({ ...editFollowUp, notes: e.target.value })}/></div>
-            </div><div className="flex justify-end gap-2 mt-4"><Button variant="outline" onClick={() => setEditFollowUp(null)}>Cancel</Button><Button onClick={handleEditFollowUp} className="bg-blue-600 hover:bg-blue-700">Save</Button></div></div>)}
+          <div className="space-y-2">
+            <Label htmlFor="editStatus">Status</Label>
+            <Select value={editFollowUp.status} onValueChange={(value) => setEditFollowUp({ ...editFollowUp, status: value })}>
+              <SelectTrigger id="editStatus"><SelectValue placeholder="Select status" /></SelectTrigger>
+              <SelectContent>
+                {statuses.map((status) => (
+                  <SelectItem key={status} value={status}>
+                    {status.charAt(0).toUpperCase() + status.slice(1)}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </div>
+
+          <div className="space-y-2"><Label htmlFor="editPriority">Priority</Label><Select value={editFollowUp.priority} onValueChange={(value) => setEditFollowUp({ ...editFollowUp, priority: value as any })}><SelectTrigger><SelectValue /></SelectTrigger><SelectContent>{priorities.map((p) => <SelectItem key={p} value={p}>{p.charAt(0).toUpperCase() + p.slice(1)}</SelectItem>)}</SelectContent></Select></div>
+
+          <div className="space-y-2"><Label htmlFor="editDescription">Description</Label><Input id="editDescription" value={editFollowUp.description} onChange={(e) => setEditFollowUp({ ...editFollowUp, description: e.target.value })} /></div>
+          <div className="space-y-2"><Label htmlFor="editScheduledDate">Scheduled Date</Label><Input id="editScheduledDate" type="date" value={editFollowUp.scheduledDate} onChange={(e) => setEditFollowUp({ ...editFollowUp, scheduledDate: e.target.value })} /></div>
+          <div className="space-y-2"><Label htmlFor="editScheduledTime">Scheduled Time</Label><Input id="editScheduledTime" type="time" value={editFollowUp.scheduledTime} onChange={(e) => setEditFollowUp({ ...editFollowUp, scheduledTime: e.target.value })} /></div>
+          <div className="col-span-2 space-y-2"><Label htmlFor="editNotes">Notes</Label><Textarea id="editNotes" value={editFollowUp.notes} onChange={(e) => setEditFollowUp({ ...editFollowUp, notes: e.target.value })} /></div>
+        </div><div className="flex justify-end gap-2 mt-4"><Button variant="outline" onClick={() => setEditFollowUp(null)}>Cancel</Button><Button onClick={handleEditFollowUp} className="bg-blue-600 hover:bg-blue-700">Save</Button></div></div>)}
         </DialogContent>
       </Dialog>
 
       <Dialog open={!!historyFollowUp} onOpenChange={() => setHistoryFollowUp(null)}>
         <DialogContent className="max-w-2xl"><DialogHeader><DialogTitle>Follow-up History for: {historyFollowUp?.leadName}</DialogTitle><DialogDescription>A log of all updates and changes for this lead.</DialogDescription></DialogHeader>
           <div className="mt-4 max-h-[60vh] overflow-y-auto pr-2">
-            {isHistoryLoading ? (<p>Loading history...</p>) 
-            : historyLogs.length > 0 ? (
-              <div className="space-y-6">
-                {historyLogs.map(log => (
-                  <div key={log.id} className="flex gap-4">
-                    <div className="flex-shrink-0"><div className="bg-gray-100 rounded-full h-10 w-10 flex items-center justify-center"><History className="h-5 w-5 text-gray-500" /></div></div>
-                    <div className="flex-grow">
-                      <p className="font-medium text-gray-800">{log.description}</p>
-                      <p className="text-sm text-gray-500">{new Date(log.createdAt).toLocaleString()}</p>
-                      {log.notes && (<blockquote className="mt-2 border-l-4 pl-3 py-1 text-sm text-gray-600 bg-gray-50">Notes: {log.notes}</blockquote>)}
-                      <div className="mt-2 flex gap-2"><Badge className={getStatusColor(log.status)}>{log.status}</Badge><Badge className={getPriorityColor(log.priority)}>{log.priority}</Badge></div>
+            {isHistoryLoading ? (<p>Loading history...</p>)
+              : historyLogs.length > 0 ? (
+                <div className="space-y-6">
+                  {historyLogs.map(log => (
+                    <div key={log.id} className="flex gap-4">
+                      <div className="flex-shrink-0"><div className="bg-gray-100 rounded-full h-10 w-10 flex items-center justify-center"><History className="h-5 w-5 text-gray-500" /></div></div>
+                      <div className="flex-grow">
+                        <p className="font-medium text-gray-800">{log.description}</p>
+                        <p className="text-sm text-gray-500">{new Date(log.createdAt).toLocaleString()}</p>
+                        {log.notes && (<blockquote className="mt-2 border-l-4 pl-3 py-1 text-sm text-gray-600 bg-gray-50">Notes: {log.notes}</blockquote>)}
+                        <div className="mt-2 flex gap-2"><Badge className={getStatusColor(log.status)}>{log.status}</Badge><Badge className={getPriorityColor(log.priority)}>{log.priority}</Badge></div>
+                      </div>
                     </div>
-                  </div>
-                ))}
-              </div>
-            ) : (<p>No history found for this lead.</p>)}
+                  ))}
+                </div>
+              ) : (<p>No history found for this lead.</p>)}
           </div>
           <div className="flex justify-end gap-2 mt-4"><Button variant="outline" onClick={() => setHistoryFollowUp(null)}>Close</Button></div>
         </DialogContent>
