@@ -154,3 +154,10 @@ export const updateLead = async (id, leadData) => {
 
   return updatedLead;
 };
+
+export const deleteLead = async (id) => {
+  await prisma.lead.delete({
+    where: { id },
+  });
+};
+

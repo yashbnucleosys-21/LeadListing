@@ -21,22 +21,12 @@ export const createLead = async (req, res) => {
 export const getAllLeads = async (req, res) => {
   try {
     const leads = await LeadServices.getAllLeads();
-
-    // Ensure we always return an array (flatten if needed)
-    let leadsArray = [];
-    if (Array.isArray(leads)) {
-      leadsArray = leads;
-    } else if (leads?.data && Array.isArray(leads.data)) {
-      leadsArray = leads.data;
-    }
-
-    res.status(200).json(leadsArray);
+    res.status(200).json(leads);
   } catch (error) {
     console.error('Error fetching leads:', error);
     res.status(500).json({ message: 'Server error while fetching leads' });
   }
 };
-
 
 // Update a Lead
 export const updateLead = async (req, res) => {
@@ -52,16 +42,20 @@ export const updateLead = async (req, res) => {
 };
 
 // Delete a Lead
+// Delete a Lead
 export const deleteLead = async (req, res) => {
   try {
-    const { id } = req.params;
-    await LeadServices.deleteLead(Number(id));
-    res.status(204).send();
+    const id = Number(req.params.id);
+
+    await LeadServices.deleteLead(id);   // ← FIXED name
+
+    res.status(200).json({ message: "Lead deleted successfully" });
   } catch (error) {
-    console.error('Error deleting lead:', error);
-    res.status(500).json({ message: 'Failed to delete lead' });
+    console.error("Error deleting lead:", error);
+    res.status(500).json({ error: "Failed to delete lead" });
   }
 };
+
 
 // Get Lead by ID (Optional)
 export const getLeadById = async (req, res) => {
@@ -77,3 +71,5 @@ export const getLeadById = async (req, res) => {
     res.status(500).json({ message: 'Failed to fetch lead' });
   }
 };
+
+

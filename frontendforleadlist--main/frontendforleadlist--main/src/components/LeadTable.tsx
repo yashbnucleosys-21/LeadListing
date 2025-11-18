@@ -1,7 +1,7 @@
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
-import { Edit, Phone, Mail, Calendar, Eye, Clock } from 'lucide-react';
+import { Edit, Phone, Mail, Calendar, Eye, Clock, Trash2 } from 'lucide-react';
 import { Lead } from '@/types/Lead';
 import { getStatusColor, getPriorityColor } from '@/utils/leadUtils';
 
@@ -10,9 +10,10 @@ interface LeadTableProps {
   onViewLead: (lead: Lead) => void;
   onEditLead: (lead: Lead) => void;
   onCallLead: (lead: Lead) => void;
+  onDeleteLead: (lead: Lead) => void
 }
 
-const LeadTable = ({ leads, onViewLead, onEditLead, onCallLead }: LeadTableProps) => {
+const LeadTable = ({ leads, onViewLead, onEditLead, onCallLead, onDeleteLead }: LeadTableProps) => {
   // ✅ helper: format ISO dates nicely
   const formatDate = (dateString?: string) => {
     if (!dateString) return '-';
@@ -135,6 +136,18 @@ const LeadTable = ({ leads, onViewLead, onEditLead, onCallLead }: LeadTableProps
                       </Button>
                       <Button size="sm" variant="outline" onClick={() => onCallLead(lead)}>
                         <Phone className="h-3 w-3" />
+                      </Button>
+                      <Button
+                        size="sm"
+                        variant="outline" // same style as other buttons
+                        className="text-red-600 hover:bg-red-50" // make it look destructive but consistent
+                        onClick={() => {
+                          if (confirm(`Are you sure you want to delete ${lead.leadName}?`)) {
+                            onDeleteLead(lead);
+                          }
+                        }}
+                      >
+                        <Trash2 className="h-3 w-3" />
                       </Button>
                     </div>
                   </td>

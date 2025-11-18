@@ -12,16 +12,22 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Plus, Search } from 'lucide-react';
 import { Lead, statuses } from '@/types/Lead';
 import { getAllLeads } from '@/api/leadApi';
-import { User, getUsers } from '@/api/userApi'; // Import user-related functions and types
+import { User, getUsers } from '@/api/userApi';
 import { filterLeads } from '@/utils/leadUtils';
 import LeadForm from '@/components/LeadForm';
 import LeadTable from '@/components/LeadTable';
 import LeadDetailsDialog from '@/components/LeadDetailsDialog';
 import CallDialog from '@/components/CallDialog';
+import { getAllCallLogs } from '../api/callLogApi'; // ✅ ADDED: Import to trigger refresh in parent for CallHistory
+import { deleteLead } from '@/api/leadApi'; // ✅ import delete API
+
 
 const LeadManagement = () => {
   const [leads, setLeads] = useState<Lead[]>([]);
-  const [users, setUsers] = useState<User[]>([]); // State for users
+  const [users, setUsers] = useState<User[]>([]);
+  const [loading, setLoading] = useState<boolean>(true); // ✅ ADDED: Loading state
+  const [error, setError] = useState<string | null>(null); // ✅ ADDED: Error state
+
   const [isAddDialogOpen, setIsAddDialogOpen] = useState(false);
   const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
   const [searchTerm, setSearchTerm] = useState('');
@@ -29,29 +35,33 @@ const LeadManagement = () => {
   const [selectedLead, setSelectedLead] = useState<Lead | null>(null);
   const [editingLead, setEditingLead] = useState<Lead | null>(null);
 
-  // State for call dialog
   const [isCallDialogOpen, setIsCallDialogOpen] = useState(false);
   const [callLeadData, setCallLeadData] = useState<Lead | null>(null);
 
+  const fetchData = async () => {
+    try {
+      setLoading(true); // Start loading
+      const [leadsData, usersData] = await Promise.all([
+        getAllLeads(),
+        getUsers(),
+      ]);
+      setLeads(leadsData);
+      setUsers(usersData);
+      setError(null); // Clear any previous errors
+    } catch (apiError: any) { // ✅ UPDATED: Catch API errors
+      setError(apiError.message || 'An unexpected error occurred while fetching data.');
+      console.error('Error fetching data:', apiError);
+    } finally {
+      setLoading(false); // Stop loading regardless of success or failure
+    }
+  };
+
   useEffect(() => {
-    const fetchData = async () => {
-      try {
-        const [leadsData, usersData] = await Promise.all([
-          getAllLeads(),
-          getUsers(),
-        ]);
-        setLeads(leadsData);
-        setUsers(usersData);
-      } catch (error) {
-        console.error('Error fetching data:', error);
-      }
-    };
     fetchData();
   }, []);
 
   const filteredLeads = filterLeads(leads, searchTerm, filterStatus);
 
-  // Filter users with the "Employee" role. [1, 2]
   const employeeUsers = users.filter((user) => user.role === 'Employee');
 
   const handleEditLead = (lead: Lead) => {
@@ -65,9 +75,28 @@ const LeadManagement = () => {
     setEditingLead(null);
   };
 
+  const handleAddLeadSuccess = (newLead: Lead) => {
+    setLeads((prev) => [newLead, ...prev]);
+    setIsAddDialogOpen(false); // Close dialog on success
+  };
+
   const handleCallLead = (lead: Lead) => {
     setCallLeadData(lead);
     setIsCallDialogOpen(true);
+  };
+
+  // ✅ ADDED: Callback to refresh data after a call is logged
+  const handleCallLogged = () => {
+    fetchData(); // Re-fetch leads (to get updated last contact, etc. if implemented) and call logs
+  };
+
+  const handleDeleteLead = async (lead: Lead) => {
+    try {
+      await deleteLead(lead.id);
+      setLeads((prev) => prev.filter((l) => l.id !== lead.id));
+    } catch (err: any) {
+      alert(err.message || 'Failed to delete lead');
+    }
   };
 
   return (
@@ -97,7 +126,7 @@ const LeadManagement = () => {
               ))}
             </SelectContent>
           </Select>
-          
+
           {/* Assign To Dropdown */}
           <Select>
             <SelectTrigger className="w-48">
@@ -106,7 +135,7 @@ const LeadManagement = () => {
             <SelectContent>
               <SelectItem value="all">All Employees</SelectItem>
               {employeeUsers.map((user) => (
-                <SelectItem key={user.id} value={user.id.toString()}>
+                <SelectItem key={user.id} value={user.name}> {/* Changed value to user.name */}
                   {user.name}
                 </SelectItem>
               ))}
@@ -128,19 +157,26 @@ const LeadManagement = () => {
             </DialogHeader>
             <LeadForm
               onClose={() => setIsAddDialogOpen(false)}
-              onAddLead={(lead) => setLeads((prev) => [lead, ...prev])}
+              onAddLead={handleAddLeadSuccess} // ✅ UPDATED
             />
           </DialogContent>
         </Dialog>
       </div>
 
       {/* Leads Table */}
-      <LeadTable
-        leads={filteredLeads}
-        onViewLead={setSelectedLead}
-        onEditLead={handleEditLead}
-        onCallLead={handleCallLead}
-      />
+      {loading ? (
+        <p className="text-center text-gray-500">Loading leads...</p>
+      ) : error ? (
+        <p className="text-center text-red-600">{error}</p>
+      ) : (
+        <LeadTable
+          leads={filteredLeads}
+          onViewLead={setSelectedLead}
+          onEditLead={handleEditLead}
+          onCallLead={handleCallLead}
+          onDeleteLead={handleDeleteLead} // ✅ pass delete callback
+        />
+      )}
 
       {/* View Lead Dialog */}
       <LeadDetailsDialog
@@ -174,6 +210,7 @@ const LeadManagement = () => {
           setIsCallDialogOpen(false);
           setCallLeadData(null);
         }}
+        onCallLogged={handleCallLogged} // ✅ Pass the callback
       />
     </div>
   );

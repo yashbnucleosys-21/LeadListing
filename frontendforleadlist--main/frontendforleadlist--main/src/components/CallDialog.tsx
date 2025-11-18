@@ -15,6 +15,8 @@ interface CallDialogProps {
   lead: Lead | null;
   isOpen: boolean;
   onClose: () => void;
+  onCallLogged: () => void; // ✅ add this if you want parent to refresh
+
 }
 
 const CallDialog = ({ lead, isOpen, onClose }: CallDialogProps) => {
